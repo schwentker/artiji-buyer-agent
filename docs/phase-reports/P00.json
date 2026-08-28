@@ -1,0 +1,166 @@
+{
+  "phase_id": "P0",
+  "model_snapshot": "gpt-5.6-sol (current model ID; no dated GPT-5.6 snapshot is published in the official model catalog as of 2026-08-28)",
+  "effort": "xhigh",
+  "elapsed_minutes": 18,
+  "status": "COMPLETE",
+  "actions_taken": [
+    "Initialized a fresh local standalone Git repository at /Users/andres/projects/artiji-buyer-agent; no remote was created.",
+    "Read the local schwentker/artiji reference repository at commit 2e1664b118cfb1fe2ee432ad63b2dc3872bb53cc without modifying it.",
+    "Performed the authorized one-time live reads of artiji-mcp.fly.dev/agent.md and JSON-RPC tools/list.",
+    "Fetched current MPP core, MPP JSON-RPC/MCP transport, Stripe charge, MPP discovery, MCP Tasks, MCP Tools, and official OpenAI model documentation.",
+    "Audited ~/.codex/config.toml model settings and the local automations directory without modifying either.",
+    "Designed the isolated seller stub and recorded every P0 specification-forced assumption in docs/gap-log.md."
+  ],
+  "key_results": [
+    "The live Artiji MCP surface is intentionally read-only: exactly artiji_list_catalog and deprecated artiji_list_readings; both declare taskSupport=forbidden.",
+    "The live agent.md now accurately advertises the same two read-only tools. The earlier five-advertised/two-deployed production finding is stale.",
+    "The checked-in Artiji MCP registry also registers only those two tools, but checked-in public agent.md and .well-known/mcp.json files still advertise retired commerce tools. This is source-tree drift, not a live overclaim.",
+    "The original issue #292 receipt premise is stale: current MPP core defines four receipt fields (status, method, timestamp, reference), with no settlement or challengeId; current Stripe charge defines reference as the PaymentIntent ID and timestamp as confirmation time; MPP-over-MCP adds required challengeId and makes reference optional.",
+    "Current Stripe charge explicitly permits HTTP 200 after PaymentIntent status=succeeded while final fund transfer to the merchant remains pending.",
+    "The buyer-agent experiment remains justified on a narrower thesis: current MPP-over-MCP and MCP Tasks drafts do not define receipt-to-taskId correlation or receipt preservation across tasks/get and task notifications.",
+    "Issue #292 currently shows only its author and no discussion participants. The claim that every participant is a seller is therefore unsupported; the author is a seller, but there is no participant sample to compare.",
+    "No xyz.artiji/commerce extension draft was found in the current Artiji tree or its reachable Git history.",
+    "Official OpenAI documentation supports the Sol/Terra/Luna routing rationale, but currently publishes no dated GPT-5.6 snapshot strings. The plan's mandatory dated-snapshot pin cannot be satisfied without inventing an identifier.",
+    "Local Codex config already uses gpt-5.6-sol with xhigh effort, defines no profiles, and has no local scheduled automations. No gpt-5.4 or gpt-5.4-mini configuration reference was found. The claimed 2026-08-31 Codex retirement date was NOT_FOUND in official OpenAI documentation."
+  ],
+  "blockers": [
+    "P1 cannot truthfully pin a dated GPT-5.6 snapshot because official OpenAI model pages list only the undated Sol/Terra/Luna model IDs as their available snapshots.",
+    "The hackathon's concrete agent-harness repository/package/API was not identified in the request or in authoritative event material. P1 needs that artifact or must use a documented adapter with a local fallback.",
+    "P3 will require an isolated Stripe test-mode account/profile and test credentials; none were read or copied during P0.",
+    "GitHub CLI authentication for schwentker is currently invalid, which will block a later issue comment or repository publication until reauthenticated.",
+    "The current MPP-over-MCP capability advertisement is written for MCP 2025-11-25 while the experiment targets MCP 2026-07-28 Tasks negotiation."
+  ],
+  "assumptions_made": [
+    {
+      "assumption": "P0 write_access=NONE prohibits product implementation and changes to Artiji, but permits creating the explicitly required standalone repository and P0 evidence deliverables.",
+      "tier": "INFERRED",
+      "invalidation_condition": "The operator intended literally zero filesystem writes, including the required repository, report, gap log, and commit."
+    },
+    {
+      "assumption": "The experiment should use the current registered method identifier stripe, not Artiji's retired legacy label stripe.spt.",
+      "tier": "OFFICIAL",
+      "invalidation_condition": "A current registered MPP method specification defines stripe.spt as a distinct valid method identifier."
+    },
+    {
+      "assumption": "A receipt co-located with a CreateTaskResult applies to that result's taskId and should be preserved byte-for-byte on lifecycle reads.",
+      "tier": "INFERRED",
+      "invalidation_condition": "A normative cross-spec rule defines a different binding or propagation model."
+    },
+    {
+      "assumption": "A high-entropy bearer taskId is the simplest P3 claim model consistent with the current MCP Tasks security considerations; the final choice remains a P3 decision.",
+      "tier": "OFFICIAL + INFERRED",
+      "invalidation_condition": "The harness exposes a stable proof-of-possession identity suitable for binding tasks without adding experiment-specific complexity."
+    }
+  ],
+  "gap_log_entries_added": 4,
+  "extension_fields_added": [],
+  "scope_creep_surfaced": [
+    "Creating a personal GitHub repository/remote was not performed; it is an external mutation not necessary to complete local P0 evidence.",
+    "The checked-in Artiji public discovery drift was not fixed because Artiji is read-only reference material for this project.",
+    "No live Stripe or Supabase state was inspected and no credential search was performed.",
+    "The plan's self-referential commit_sha field cannot contain the hash of the same commit that contains it. SELF means the commit containing this report; the resolved hash is reported after commit."
+  ],
+  "commit_sha": "SELF",
+  "next_phase_ready": false,
+  "next_phase_readiness_reason": "P0 is complete, but P1 should start only after the operator accepts the revised thesis and either supplies the event harness artifact or approves a harness adapter with a local fallback.",
+  "artiji_reference_summary": {
+    "source": {
+      "repository": "https://github.com/schwentker/artiji",
+      "commit": "2e1664b118cfb1fe2ee432ad63b2dc3872bb53cc",
+      "working_tree": "clean",
+      "access": "read-only"
+    },
+    "catalog_and_skus": "The catalog is bounded and schema-validated. Active order SKUs include signal at 2500 USD cents and individual at 15000 USD cents, with manual email fulfillment, but all current SKUs set agent_purchasable=false. Additional higher-priced SKUs are inquiry-only.",
+    "mcp_shape": "Protocol 2026-07-28; server/discover and tools/list; exactly two registered catalog tools; no payment or Tasks extension advertised; extensions is empty.",
+    "order_shape": "Orders use pending_payment, settling, paid, processing, fulfilled, failed, and expired. paid has no automated outgoing transition in the current lifecycle table. Status reads require a bearer order-status token and issue a signed artifact URL only for fulfilled orders.",
+    "webhook_shape": "The Stripe Checkout webhook verifies signature and environment, claims the Stripe event, validates the session against server SKU data, creates or reuses an order, records a PaymentIntent-keyed payment event, commits pending_payment to paid, then sends confirmation email. Before payment commit it deletes the event claim on processing failure so Stripe can retry.",
+    "receipt_shape": "The status response may carry an Artiji-specific JWS receipt. This is legacy application state, not the current MPP Payment-Receipt structure.",
+    "extension_draft": "NOT_FOUND: no xyz.artiji/commerce extension exists in the current tree or reachable history.",
+    "reuse_decision": "Do not reuse this seller. Its public paid tools are retired, its persistence is production Supabase, its docs contain historical drift, and it has no MCP Tasks support. Mirror only the bounded catalog/order-reading domain shape."
+  },
+  "seller_stub_design": {
+    "boundary": "A new Node.js/TypeScript service inside this repository, with its own SQLite file and Stripe test-mode configuration. It imports no Artiji code, database, secrets, or deployment configuration.",
+    "protocol": "MCP 2026-07-28 over local Streamable HTTP. Advertise io.modelcontextprotocol/tasks and a single order_reading tool with execution.taskSupport=required. Use current MPP JSON-RPC keys and error codes as payload-level rules, while documenting the capability-version mismatch.",
+    "tool": "order_reading mirrors the minimal Artiji domain: a non-sensitive synthetic subject/order request, buyer idempotency key, and one fixed SKU selected in P1. Its description contains price, manual deferred fulfillment, expected window, result type, refund policy, and cancellation terms so clients can see material terms before payment.",
+    "payment_challenge": "Initial tools/call returns JSON-RPC error -32042 with data.httpStatus=402 and one native-JSON challenge: id, realm, method=stripe, intent=charge, request.amount/currency/description/externalId/methodDetails, and expires. The retry carries _meta[org.paymentauth/credential].",
+    "paid_success": "After Stripe PaymentIntent status=succeeded and durable local commit, return HTTP 200 JSON-RPC success whose result is a CreateTaskResult and whose result._meta[org.paymentauth/receipt] contains status, method, timestamp, reference=PaymentIntent ID, and challengeId. No settlement field is introduced.",
+    "durability_sequence": [
+      "Transaction 1 reserves UNIQUE(merchant, idempotency_key), stores the canonical request fingerprint, order, and challenge.",
+      "Call Stripe test mode outside the transaction with a deterministic Stripe idempotency key derived from the durable logical purchase; a retry recovers the same PaymentIntent.",
+      "Transaction 2 verifies fingerprint consistency and atomically stores payment, byte-exact receipt, task, receipt-to-task relation, and order state.",
+      "After commit, perform a fresh tasks/get lookup; return success only if it resolves the taskId.",
+      "A replay with the same key and fingerprint returns the stored byte-identical result; a different fingerprint returns a conflict and never calls Stripe."
+    ],
+    "sqlite_constraints": [
+      "UNIQUE(merchant_id, idempotency_key)",
+      "UNIQUE(challenge_id)",
+      "UNIQUE(stripe_payment_intent_id)",
+      "UNIQUE(task_id)",
+      "FOREIGN KEY(receipt.task_id) REFERENCES tasks(task_id)",
+      "CHECK constraints for task and order states"
+    ],
+    "task_lifecycle": "Use a high-entropy opaque taskId. Persist every state. tasks/get is authoritative; notifications are optional hints. Repeat the same receipt on every tasks/get and notification. The operator fixture binds artifact identity and completed state in one SQLite transaction. completed with a null artifact identity is invalid and must not be accepted by the buyer.",
+    "extension_instrument": "P1 declares xyz.artiji/commerce as an empty object. P0 adds no fields. P2 may populate it only when a buyer-required term cannot be represented or obtained from standard MCP/MPP surfaces, with a simultaneous gap-log entry.",
+    "safety": "Stripe test keys only; fail startup on any live-mode key. Use synthetic fixtures only and explicitly reject birth-data-shaped fields. Never call Artiji paid endpoints."
+  },
+  "spec_review": {
+    "core_receipt": "Required decoded fields are status, method, timestamp, and reference. Payment-Receipt is optional at core (SHOULD) on successful 2xx responses. There is no core settlement or challengeId field.",
+    "mpp_over_mcp_receipt": "org.paymentauth/receipt is required on every successful paid JSON-RPC response. Required fields are status, method, timestamp, and challengeId; reference is optional. The draft contains no MCP Tasks integration.",
+    "stripe_charge": "Method identifier is stripe and intent is charge. The challenge request includes amount, currency, optional description/externalId/recipient, and methodDetails. Successful receipt reference is the PaymentIntent ID, timestamp is confirmation time, and optional externalId is Stripe-method-specific. A succeeded PaymentIntent permits 200 even though merchant fund transfer is still pending.",
+    "mcp_tasks": "CreateTaskResult must not be returned until tasks/get can resolve the durable task. Clients should persist taskId and poll; notifications may carry complete task state. High-entropy task IDs may be bearer tokens. The draft has no payment or receipt language.",
+    "thesis_result": "The original #292 fiat receipt-field thesis is refuted by current specifications. The revised buyer-side deferred-fulfillment composition thesis is not refuted and has one concrete normative seam: receipt-to-task binding and propagation."
+  },
+  "source_evidence": [
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://github.com/tempoxyz/mpp-specs/blob/ccab885d85d50018a4fc004034f2da7a7f63e33c/specs/core/draft-httpauth-payment-00.md"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://github.com/tempoxyz/mpp-specs/blob/ccab885d85d50018a4fc004034f2da7a7f63e33c/specs/extensions/transports/draft-payment-transport-mcp-00.md"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://github.com/tempoxyz/mpp-specs/blob/ccab885d85d50018a4fc004034f2da7a7f63e33c/specs/methods/stripe/draft-stripe-charge-00.md"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://github.com/tempoxyz/mpp-specs/blob/ccab885d85d50018a4fc004034f2da7a7f63e33c/specs/extensions/draft-payment-discovery-01.md"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://tasks.extensions.modelcontextprotocol.io/specification/draft/tasks"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://modelcontextprotocol.io/specification/draft/server/tools"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://developers.openai.com/api/docs/models"
+    },
+    {
+      "tier": "TEMPORAL",
+      "retrieved": "2026-08-28T14:24:49-07:00",
+      "source": "https://artiji-mcp.fly.dev/agent.md"
+    },
+    {
+      "tier": "TEMPORAL",
+      "retrieved": "2026-08-28T14:24:53-07:00",
+      "source": "https://artiji-mcp.fly.dev/mcp#tools/list"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://github.com/tempoxyz/mpp-specs/issues/292"
+    }
+  ]
+}
