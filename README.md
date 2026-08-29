@@ -26,7 +26,7 @@ node --version
 npm test
 ```
 
-Expected result: **19 tests pass** with no package installation and no external service required.
+Expected result: **20 tests pass** with no package installation and no external service required.
 
 Then inspect, in order:
 
@@ -123,6 +123,8 @@ flowchart LR
 | [`shared/mcp-tasks.js`](shared/mcp-tasks.js) | Defines the Tasks capability metadata and required polling routing headers shared by clients and fixtures. |
 
 TrueForge can run the live model/tool loop against the local MCP server and own the visible human checkpoint. The deterministic suite still requires neither TrueForge nor a configured model provider. See [`trueforge/README.md`](trueforge/README.md).
+
+The project also has a deliberately narrower cloud demonstration in TrueFoundry. A saved `artiji-buyer-agent` uses `openai/gpt-4.1-mini` to discover and call a TrueFoundry-hosted STDIO MCP server named `artiji-commerce`. That cloud tool only inspects the offer; the local TrueForge path remains the demonstration that performs the synthetic approval, payment, deferred-task, restart, and artifact flow.
 
 ## End-to-end lifecycle
 
@@ -303,6 +305,91 @@ In TrueForge:
 5. Confirm that the agent first calls `inspect_offer`, pauses before the write tool `order_reading`, then calls `get_order_status` and returns the correlated synthetic artifact.
 
 The demo uses a fake Stripe boundary, never accepts production data, auto-completes after 750 ms, and prints redacted `MCP_EVIDENCE` events. It shows TrueForge operating an MCP server; it does not claim TrueForge natively interprets the experimental commerce or Tasks extensions. Details and the suggested agent prompt are in [`trueforge/README.md`](trueforge/README.md).
+
+### Saved cloud agent demo with TrueFoundry
+
+The TrueFoundry Developer tenant contains:
+
+| Resource | Value |
+| --- | --- |
+| MCP server | `artiji-commerce` |
+| Hosting | TrueFoundry hosted STDIO, exposed as Streamable HTTP |
+| MCP gateway URL | `https://gateway.truefoundry.ai/artiji/mcp/artiji-commerce/server` |
+| Tool | `inspect_offer` |
+| Saved agent | `artiji-buyer-agent` |
+| Model used for the verified run | `openai/gpt-4.1-mini`, medium reasoning |
+
+The verified run executed this visible sequence:
+
+```text
+list_tools (artiji-commerce)
+get_tool_info: inspect_offer (artiji-commerce)
+call_tool: inspect_offer (artiji-commerce)
+```
+
+```mermaid
+sequenceDiagram
+    participant J as Judge
+    participant A as TrueFoundry agent<br/>GPT-4.1 mini
+    participant G as TrueFoundry MCP Gateway
+    participant S as Hosted STDIO process
+
+    J->>A: Inspect the USD 150 offer
+    A->>G: list_tools / get_tool_info
+    G->>S: initialize / tools/list
+    S-->>G: inspect_offer schema
+    A->>G: call_tool: inspect_offer
+    G->>S: tools/call
+    S-->>A: Structured material terms
+    A-->>J: Explain terms; no order or payment
+```
+
+The result disclosed USD 150.00, manual-deferred fulfillment, 3–5 days, a full chart analysis artifact, the refund policy, and the cancellation policy. It explicitly stated that the offer is test-only and did not create an order or payment.
+
+This cloud path is intentionally read-only. It proves that a hosted model loop discovers and invokes the project's MCP extension through TrueFoundry, and it produces gateway traces and MCP metrics. Use the local TrueForge demo above when judging the write action, human approval, test payment, durable task, restart, and fulfillment correlation.
+
+To reconstruct the hosted STDIO configuration without copying code from the dashboard:
+
+```sh
+npm run tf:manifest
+```
+
+Copy the printed JSON into **MCP Gateway → Add Server → Create a Hosted STDIO-based MCP Server → Paste STDIO Configuration**, import it, and complete these fields:
+
+- Name: `artiji-commerce`
+- Display name: `Artiji Commerce`
+- Description: `Cloud-hosted Artiji offer-inspection MCP for the buyer-agent hackathon demo.`
+- Authentication: none
+
+The manifest embeds [`trueforge/artiji-cloud-stdio.cjs`](trueforge/artiji-cloud-stdio.cjs) as the argument to `node -e`; the private repository is therefore not fetched by TrueFoundry and no package is published. The source implements `initialize`, accepts `notifications/initialized` without replying as required for a notification, implements `ping`, `tools/list`, and `tools/call`, and returns empty resource, resource-template, and prompt discovery responses. The automated test exercises initialization, discovery, and a real tool call over STDIO.
+
+TrueFoundry showed the tenant as **Developer Plan** and allowed creation without a billing or upgrade step. The plan limit and model-provider pricing are external account facts, not repository guarantees: check the current TrueFoundry plan page before recreating resources, and remember that model calls may consume separately billed provider tokens even when the MCP Gateway plan is free.
+
+### Move from this iMac to the laptop
+
+The TrueFoundry MCP server and saved agent live in the cloud tenant, so they do not need to be recreated on the laptop. Sign in to the same `artiji.truefoundry.cloud` tenant and open **Agents → Registry → `artiji-buyer-agent`** to run the cloud demo.
+
+To update the earlier local clone on the laptop:
+
+```sh
+cd /path/to/artiji-buyer-agent
+git status --short
+git switch main
+git pull --ff-only origin main
+node --version
+npm test
+```
+
+Use Node.js 22.14 or newer. If `git status --short` prints local work, do not overwrite it: commit it on a laptop-only branch or stash it before switching and pulling. If the hackathon changes are still in an unmerged pull request, fetch and switch to its branch instead:
+
+```sh
+git fetch origin
+git switch hackathon-judge-readme
+git pull --ff-only origin hackathon-judge-readme
+npm test
+```
+
+For the local full-action demo on the laptop, open two terminals and run `npm run demo:mcp` in one and `npx @truefoundry/trueforge@latest --port 8790` in the other. TrueForge's connector URL remains `http://127.0.0.1:8787/mcp`. Secrets are machine-local: copy `.env.example` to `.env` and add a dedicated `sk_test_` key only if you intentionally run the optional live Stripe trace. Never copy a production key or commit `.env`.
 
 ## Repository map
 

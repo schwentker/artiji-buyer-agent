@@ -84,3 +84,15 @@ The demo auto-completes after 750 ms. Set `ARTIJI_DEMO_COMPLETION_MS` to change 
 The MCP server exposes `xyz.artiji/commerce` and `io.modelcontextprotocol/tasks` as experimental capability/tool metadata and keeps raw `tasks/get` available. The ordinary `get_order_status` tool is a compatibility bridge because TrueForge exposes MCP tools to the model but is not claimed to natively understand those draft extensions.
 
 The separate [`../buyer/harness-session.js`](../buyer/harness-session.js) remains the deterministic buyer-state adapter used by the crash/recovery evidence suite. The live TrueForge path does not claim to reproduce the suite's real `SIGKILL` demonstration inside the chat UI.
+
+## TrueFoundry cloud companion
+
+The saved TrueFoundry `artiji-buyer-agent` is a narrower cloud proof: `openai/gpt-4.1-mini` discovers and calls a hosted STDIO `inspect_offer` tool through the MCP Gateway. It is read-only and does not replace the local full-action demonstration above.
+
+Regenerate the importable hosted-STDIO manifest from the reviewed source:
+
+```sh
+npm run tf:manifest
+```
+
+The source is [`artiji-cloud-stdio.cjs`](artiji-cloud-stdio.cjs). See the root [`README.md`](../README.md) for the verified call sequence, TrueFoundry fields, plan caveat, and laptop handoff instructions.
