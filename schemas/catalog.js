@@ -10,3 +10,12 @@ export const FIXED_OFFER = Object.freeze({
 });
 
 export const COMMERCE_EXTENSION_NAMESPACE = "xyz.artiji/commerce";
+
+export const REQUIRED_DISCLOSURE_FIELDS = Object.freeze([
+  "price",
+  "fulfillmentMode",
+  "expectedWindow",
+  "resultType",
+  "refundPolicy",
+  "cancellationPolicy"
+]);

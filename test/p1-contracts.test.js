@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { COMMERCE_EXTENSION_NAMESPACE, FIXED_OFFER } from "../schemas/catalog.js";
+import { FIXED_OFFER } from "../schemas/catalog.js";
 import { createSellerStub } from "../seller/seller-stub.js";
 
-test("P1: the sole offer is fixed at USD 150.00 and the commerce extension is empty", () => {
+test("P1: the sole offer remains fixed at USD 150.00 after P2 disclosure wiring", () => {
   const seller = createSellerStub({ stripeSecretKey: "sk_test_contract_fixture" });
 
   assert.deepStrictEqual(FIXED_OFFER, {
@@ -16,7 +16,6 @@ test("P1: the sole offer is fixed at USD 150.00 and the commerce extension is em
     refundPolicy: "full refund if fulfillment cannot be completed",
     cancellationPolicy: "cancellable before payment confirmation"
   });
-  assert.deepStrictEqual(seller.extensions[COMMERCE_EXTENSION_NAMESPACE], {});
   assert.equal(seller.tools[0].execution.taskSupport, "required");
 });
 

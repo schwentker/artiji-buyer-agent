@@ -1,13 +1,22 @@
 export const DEFAULT_APPROVAL_THRESHOLD_MINOR = 10000;
 
 /**
- * P1 wires the decision boundary but deliberately has no human UI yet.
- * TrueForge's human checkpoint will implement this port in P2.
+ * The injected callback is the adapter point for a TrueForge human checkpoint.
+ * P2 intentionally stops before payment regardless of the decision.
  */
 export class ApprovalGate {
+  constructor({ thresholdMinor = DEFAULT_APPROVAL_THRESHOLD_MINOR, requestHumanApproval } = {}) {
+    this.thresholdMinor = thresholdMinor;
+    this.requestHumanApproval = requestHumanApproval ?? (async () => ({
+      approved: false,
+      pending: true,
+      source: "trueforge-human-checkpoint"
+    }));
+  }
+
   async request({ amountMinor, currency, terms }) {
-    if (amountMinor > DEFAULT_APPROVAL_THRESHOLD_MINOR) {
-      throw new Error(`APPROVAL_REQUIRED: ${amountMinor} ${currency}; ${terms?.sku ?? "unknown offer"}`);
+    if (amountMinor > this.thresholdMinor) {
+      return this.requestHumanApproval({ amountMinor, currency, terms });
     }
     return { approved: true, source: "below-threshold" };
   }

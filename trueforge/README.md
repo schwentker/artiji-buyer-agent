@@ -8,4 +8,4 @@ Run it with Node 20 or later:
 npx @truefoundry/trueforge --port 8790
 ```
 
-The buyer adapter is [`../buyer/harness-session.js`](../buyer/harness-session.js). It keeps only commerce-specific state and approval ports; TrueForge owns sessions, the human-checkpoint UI, and MCP transport configuration. P2 supplies the first discovery/approval behavior.
+The buyer adapter is [`../buyer/harness-session.js`](../buyer/harness-session.js). It keeps only commerce-specific state and approval ports; TrueForge owns sessions, the human-checkpoint UI, and MCP transport configuration. P2 supplies discovery and approval behavior; P3 is the first payment phase.

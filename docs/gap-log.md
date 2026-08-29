@@ -41,3 +41,63 @@ This log is append-only. Tiers: `OFFICIAL`, `COMMUNITY`, `INFERRED`, `TEMPORAL`.
 - Reproduction: Read `draft-stripe-charge-00` “Verification Procedure,” “Settlement Procedure,” and “Idempotency”; read the core draft's challenge binding and replay requirements; search both for a merchant-scoped buyer idempotency record that binds the eventual task (`NOT_FOUND`).
 - Sections consulted: `draft-stripe-charge-00` / Idempotency. `draft-httpauth-payment-00` / Challenge Binding; Replay Attacks. End-to-end logical purchase replay contract: `NOT_FOUND`.
 - Invalidation condition: Core, Stripe method, or MPP-over-MCP transport standardizes a durable logical-purchase idempotency contract including returned asynchronous work handles.
+
+## P2-001 — Structured tool price is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP tool metadata has no structured price amount, currency, or display field for a paid tool.
+- Assumption for the experiment: `xyz.artiji/commerce.price` carries `{amountMinor, currency, display}` while the same USD 150.00 term remains in the tool description.
+- Reproduction: Read the MCP Tools `Tool` definition and MPP discovery payment-offer object; neither normatively maps a price object onto MCP `tools/list`.
+- Sections consulted: MCP Tools / Tool definition; `draft-payment-discovery-01` / Payment Offer Object. MCP price field: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP payment/commerce extension defines a structured per-tool price field.
+
+## P2-002 — Fulfillment mode is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP has no structured indication that the paid result is manual deferred fulfillment rather than immediate tool output.
+- Assumption for the experiment: `xyz.artiji/commerce.fulfillmentMode` is `manual-deferred`, duplicated in the tool description.
+- Reproduction: Inspect MCP Tools metadata and MPP discovery; neither exposes a deferred-fulfillment mode for an MCP tool.
+- Sections consulted: MCP Tools / Tool definition; `draft-payment-discovery-01` / Payment Offer Object. MCP fulfillment mode: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines fulfillment mode for tools.
+
+## P2-003 — Fulfillment window is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP and MPP discovery do not define a structured expected fulfillment window for a paid MCP task.
+- Assumption for the experiment: `xyz.artiji/commerce.expectedWindow` is `3-5 days`, duplicated in the tool description.
+- Reproduction: Inspect MCP Tools metadata and MPP discovery fields for an SLA or fulfillment deadline (`NOT_FOUND`).
+- Sections consulted: MCP Tools / Tool definition; `draft-payment-discovery-01` / Payment Offer Object. MCP fulfillment window: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines a machine-readable fulfillment window.
+
+## P2-004 — Result type is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: An MCP tool schema can describe input and immediate structured output, but it does not describe the semantic artifact a deferred paid task will later deliver.
+- Assumption for the experiment: `xyz.artiji/commerce.resultType` is `full chart analysis artifact`, duplicated in the tool description.
+- Reproduction: Compare MCP Tools input/output schema semantics with MCP Tasks task creation and polling; no field describes the expected deferred artifact type.
+- Sections consulted: MCP Tools / Tool definition; MCP Tasks / Task Creation; Task Polling. Deferred result type: `NOT_FOUND`.
+- Invalidation condition: MCP Tasks or a ratified commerce extension defines an expected result-artifact type.
+
+## P2-005 — Refund policy is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: Neither MCP tool metadata nor the MPP Stripe charge method carries a merchant refund policy for a deferred paid tool.
+- Assumption for the experiment: `xyz.artiji/commerce.refundPolicy` is `full refund if fulfillment cannot be completed`, duplicated in the tool description.
+- Reproduction: Search MCP Tools, MCP Tasks, MPP core, and the Stripe charge method for a merchant refund-policy field (`NOT_FOUND`).
+- Sections consulted: MCP Tools / Tool definition; MCP Tasks draft; `draft-httpauth-payment-00`; `draft-stripe-charge-00`. Refund policy: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines a refund-policy field.
+
+## P2-006 — Cancellation policy is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP Tasks supports task lifecycle states but does not define merchant cancellation rights or a paid tool's cancellation policy.
+- Assumption for the experiment: `xyz.artiji/commerce.cancellationPolicy` is `cancellable before payment confirmation`, duplicated in the tool description.
+- Reproduction: Search MCP Tasks and MPP-over-MCP for cancellation policy or merchant cancellation terms (`NOT_FOUND`).
+- Sections consulted: MCP Tasks / lifecycle; `draft-payment-transport-mcp-00`. Paid-tool cancellation policy: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines cancellation policy.
