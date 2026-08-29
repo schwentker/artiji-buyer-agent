@@ -1,0 +1,52 @@
+{
+  "phase_id": "P6",
+  "model_snapshot": "gpt-5.6-sol, cutoff 2026-02-16, policy verified 2026-08-28",
+  "effort": "xhigh",
+  "elapsed_minutes": 44,
+  "status": "COMPLETE",
+  "actions_taken": [
+    "Audited all six top-level xyz.artiji/commerce fields and separated field-category gaps from merchant-chosen values.",
+    "Drafted a two-paragraph normative MPP-over-MCP addition binding the existing receipt to taskId and preserving it across tasks/get and notifications/tasks.",
+    "Generated and committed deterministic byte-exact HTTP entity-body vectors for challenge, paid success, replay, working poll, and completed poll.",
+    "Added a reproduction test that regenerates the vector flow and verifies every request/response body and SHA-256 digest byte-for-byte.",
+    "Drafted a 232-word issue #292 follow-up that leads with the three required corrections and then reports the working example.",
+    "Re-read the current MCP Tasks draft and recorded the fixture's reduced non-conformant task shape plus all other material limitations."
+  ],
+  "key_results": [
+    "All 6/6 extension fields are SPEC_GAP at the field-category level; their eight scalar values remain merchant-specific.",
+    "Discovery does not compose cleanly for the required paid deferred-service terms, while the runtime flow works only after implementation-defined idempotency, claim, receipt-binding, and artifact-correlation rules.",
+    "The minimal upstream change needs no new field and belongs only in MPP-over-MCP transport composition, not MPP core or the Stripe method.",
+    "Paid success and replay are byte-identical, use one fake provider request, and preserve the same receipt through working and completed polls.",
+    "The full P1-P6 suite passes 15/15 tests.",
+    "The vectors must not be represented as MCP conformance vectors because the fixture omits current required Task fields and terminal result nesting."
+  ],
+  "blockers": [],
+  "assumptions_made": [
+    {
+      "assumption": "SPEC_GAP classifies a missing interoperable field category, while each merchant remains responsible for the value and policy content.",
+      "tier": "INFERRED",
+      "invalidation_condition": "Reviewers define merchant-specific to include every standard category whose value is selected by a merchant."
+    },
+    {
+      "assumption": "The same Payment Receipt means the same logical receipt values carried under the existing org.paymentauth/receipt key, without adding identity or settlement fields.",
+      "tier": "INFERRED",
+      "invalidation_condition": "The transport draft defines a different receipt replacement, refresh, or lifecycle model."
+    },
+    {
+      "assumption": "Deterministic synthetic HTTP entity bodies and hashes are useful implementation evidence when explicitly distinguished from conformance vectors.",
+      "tier": "TEMPORAL + INFERRED",
+      "invalidation_condition": "The fixture changes, the hashes no longer reproduce, or reviewers require a fully conformant multi-implementation vector suite."
+    }
+  ],
+  "gap_log_entries_added": 0,
+  "extension_fields_added": [],
+  "scope_creep_surfaced": [
+    "Updating the seller and buyer to the complete current MCP Tasks wire shape was not absorbed into P6; it is a prerequisite before publishing the vectors as conformance evidence.",
+    "The six discovery gaps were not folded into the receipt lifecycle diff; they require separate design work.",
+    "No public issue comment or pull request was posted.",
+    "No notification transport, hosted gateway, second Stripe payment, refund, dispute, or settlement-finality work was added."
+  ],
+  "commit_sha": "SELF",
+  "next_phase_ready": false,
+  "next_phase_readiness_reason": "The six-phase plan is complete. Public posting is not ready as conformance evidence until the reduced MCP Tasks wire shape is corrected and the vectors are regenerated."
+}

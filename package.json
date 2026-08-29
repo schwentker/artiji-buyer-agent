@@ -9,6 +9,7 @@
     "test:p3": "node --test test/idempotency.test.js test/p1-contracts.test.js test/payment-persistence.test.js test/terms-visible-before-payment.test.js",
     "test:p4": "node --test test/restart-resume.test.js",
     "test:p5": "node --test test/gateway-traces.test.js",
+    "test:p6": "node --test test/vectors.test.js",
     "trace:p3:stripe": "node --env-file=.env scripts/p3-live-stripe.js"
   },
   "engines": {

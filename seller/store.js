@@ -10,7 +10,12 @@ export class IdempotencyConflictError extends Error {
 }
 
 export class SellerStore {
-  constructor(dbPath = ":memory:") {
+  constructor(dbPath = ":memory:", {
+    challengeIdFactory = randomUUID,
+    taskIdFactory = () => randomBytes(32).toString("base64url")
+  } = {}) {
+    this.challengeIdFactory = challengeIdFactory;
+    this.taskIdFactory = taskIdFactory;
     this.db = new DatabaseSync(dbPath);
     this.db.exec("PRAGMA foreign_keys = ON");
     this.db.exec("PRAGMA journal_mode = WAL");
@@ -69,7 +74,7 @@ export class SellerStore {
         return existing;
       }
 
-      const challenge = challengeFactory(randomUUID());
+      const challenge = challengeFactory(this.challengeIdFactory());
       const stripeIdempotencyKey = `artiji-buyer-${sha256(`${merchantId}:${idempotencyKey}`)}`;
       this.db.prepare(`
         INSERT INTO orders (
@@ -94,7 +99,7 @@ export class SellerStore {
       if (!order) throw new Error("ORDER_NOT_FOUND");
       if (order.response_json) return order.response_json;
 
-      const taskId = randomBytes(32).toString("base64url");
+      const taskId = this.taskIdFactory();
       this.db.prepare("INSERT INTO tasks (task_id, order_id, status) VALUES (?, ?, 'working')")
         .run(taskId, orderId);
       const receipt = receiptFactory({ taskId, challengeId: order.challenge_id, paymentIntent });

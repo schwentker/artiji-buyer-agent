@@ -1,0 +1,86 @@
+{
+  "format": "artiji-buyer-agent-byte-exact-http-entity-v1",
+  "fixture": {
+    "syntheticOnly": true,
+    "taskIdIsNonSecretDeterministicTestData": true,
+    "paymentProvider": "fake Stripe boundary",
+    "stripeRequests": 1
+  },
+  "vectors": {
+    "challenge": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "contentType": "application/json",
+        "body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"arguments\":{\"idempotencyKey\":\"vector-idempotency-key-00000001\",\"syntheticSubject\":\"synthetic-vector-subject\"},\"name\":\"order_reading\"}}",
+        "sha256": "f321fdfaed5e8d30ec1a2954c0d888dcdd52b3209dcf425896c268c9d79dd037"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"error\":{\"code\":-32042,\"data\":{\"httpStatus\":402,\"org.paymentauth/challenge\":[{\"expires\":\"2026-08-29T12:15:00.000Z\",\"id\":\"challenge-vector-0001\",\"intent\":\"charge\",\"method\":\"stripe\",\"realm\":\"artiji-buyer-agent.local\",\"request\":{\"amount\":15000,\"currency\":\"USD\",\"description\":\"Artiji individual deep reflection test fixture\",\"externalId\":\"vector-idempotency-key-00000001\",\"methodDetails\":{\"paymentMethodTypes\":[\"card\"]}}}]},\"message\":\"Payment required\"},\"id\":1,\"jsonrpc\":\"2.0\"}",
+        "sha256": "cf33080275d0980615f834138eb7265fdbc057fd611fa1a908fffb793d467134"
+      }
+    },
+    "paidSuccess": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "contentType": "application/json",
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"_meta\":{\"org.paymentauth/credential\":{\"paymentMethod\":\"pm_card_visa\"}},\"arguments\":{\"idempotencyKey\":\"vector-idempotency-key-00000001\",\"syntheticSubject\":\"synthetic-vector-subject\"},\"name\":\"order_reading\"}}",
+        "sha256": "769766fbb023e8012a3afaefd6a1e317bdccde0c2de2964b4dd2344ba4d2d954"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"result\":{\"_meta\":{\"org.paymentauth/receipt\":{\"challengeId\":\"challenge-vector-0001\",\"method\":\"stripe\",\"reference\":\"pi_vector_test_0001\",\"status\":\"succeeded\",\"timestamp\":\"2026-08-29T12:00:00.000Z\"}},\"pollUri\":\"/tasks/cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"status\":\"working\",\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\"}}",
+        "sha256": "b5e427b5745e44ca91fdcd64e0d25ee2f84599474a8781072e09bff5d02a91dc"
+      }
+    },
+    "replay": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "contentType": "application/json",
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"_meta\":{\"org.paymentauth/credential\":{\"paymentMethod\":\"pm_card_visa\"}},\"arguments\":{\"idempotencyKey\":\"vector-idempotency-key-00000001\",\"syntheticSubject\":\"synthetic-vector-subject\"},\"name\":\"order_reading\"}}",
+        "sha256": "769766fbb023e8012a3afaefd6a1e317bdccde0c2de2964b4dd2344ba4d2d954"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"result\":{\"_meta\":{\"org.paymentauth/receipt\":{\"challengeId\":\"challenge-vector-0001\",\"method\":\"stripe\",\"reference\":\"pi_vector_test_0001\",\"status\":\"succeeded\",\"timestamp\":\"2026-08-29T12:00:00.000Z\"}},\"pollUri\":\"/tasks/cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"status\":\"working\",\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\"}}",
+        "sha256": "b5e427b5745e44ca91fdcd64e0d25ee2f84599474a8781072e09bff5d02a91dc"
+      }
+    },
+    "poll": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "contentType": "application/json",
+        "body": "{\"id\":3,\"jsonrpc\":\"2.0\",\"method\":\"tasks/get\",\"params\":{\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\"}}",
+        "sha256": "337a659169ccaddba20dce90d0f2e52ba2fb8ae7fb7b1916fda84d690ff1c022"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"status\":\"working\",\"pollUri\":\"/tasks/cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"_meta\":{\"org.paymentauth/receipt\":{\"status\":\"succeeded\",\"method\":\"stripe\",\"timestamp\":\"2026-08-29T12:00:00.000Z\",\"reference\":\"pi_vector_test_0001\",\"challengeId\":\"challenge-vector-0001\"}}}}",
+        "sha256": "3dce6f3f332e7985a2d6388398fccfa660d87fa3e318e4ab0a643766bf431be7"
+      }
+    },
+    "completed": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "contentType": "application/json",
+        "body": "{\"id\":4,\"jsonrpc\":\"2.0\",\"method\":\"tasks/get\",\"params\":{\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\"}}",
+        "sha256": "0ff0bb128c716430f6e9b8220bd15fd3ca5fc7163d92aa493ea0e2f5a7e3a226"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"jsonrpc\":\"2.0\",\"id\":4,\"result\":{\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"status\":\"completed\",\"pollUri\":\"/tasks/cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"artifact\":{\"id\":\"artifact-vector-0001\",\"url\":\"https://artifacts.example.test/vector-0001\",\"orderReference\":\"pi_vector_test_0001\"},\"_meta\":{\"org.paymentauth/receipt\":{\"status\":\"succeeded\",\"method\":\"stripe\",\"timestamp\":\"2026-08-29T12:00:00.000Z\",\"reference\":\"pi_vector_test_0001\",\"challengeId\":\"challenge-vector-0001\"}}}}",
+        "sha256": "35229653b6a56811dca7963eb1c4b148eec50379a8da1aa8cbad79ec7a6a3528"
+      }
+    }
+  }
+}

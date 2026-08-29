@@ -8,7 +8,7 @@ const CHALLENGE_META = "org.paymentauth/challenge";
 const CREDENTIAL_META = "org.paymentauth/credential";
 const RECEIPT_META = "org.paymentauth/receipt";
 
-function buildChallenge(id, request) {
+function buildChallenge(id, request, now) {
   return {
     id,
     realm: "artiji-buyer-agent.local",
@@ -21,13 +21,21 @@ function buildChallenge(id, request) {
       externalId: request.idempotencyKey,
       methodDetails: { paymentMethodTypes: ["card"] }
     },
-    expires: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+    expires: new Date(now() + 15 * 60 * 1000).toISOString()
   };
 }
 
-export function createSellerStub({ stripeSecretKey, dbPath = ":memory:", stripeClient, merchantId = "seller.local" }) {
+export function createSellerStub({
+  stripeSecretKey,
+  dbPath = ":memory:",
+  stripeClient,
+  merchantId = "seller.local",
+  challengeIdFactory,
+  taskIdFactory,
+  now = Date.now
+}) {
   assertTestModeStripeKey(stripeSecretKey);
-  const store = new SellerStore(dbPath);
+  const store = new SellerStore(dbPath, { challengeIdFactory, taskIdFactory });
   const payments = stripeClient ?? new StripePaymentClient({ secretKey: stripeSecretKey });
 
   return {
@@ -73,7 +81,7 @@ export function createSellerStub({ stripeSecretKey, dbPath = ":memory:", stripeC
         merchantId,
         idempotencyKey: request.idempotencyKey,
         requestFingerprint,
-        challengeFactory: (id) => buildChallenge(id, request)
+        challengeFactory: (id) => buildChallenge(id, request, now)
       });
 
       if (order.response_json) {
