@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artiji-buyer-agent.local/schemas/task-handle.schema.json",
+  "title": "Demonstrated MCP task creation or polling result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["resultType", "taskId", "status", "createdAt", "lastUpdatedAt", "ttlMs", "_meta"],
+  "properties": {
+    "resultType": { "enum": ["task", "complete"] },
+    "taskId": { "type": "string", "minLength": 32 },
+    "status": { "enum": ["working", "completed"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "lastUpdatedAt": { "type": "string", "format": "date-time" },
+    "ttlMs": { "type": ["integer", "null"], "minimum": 0 },
+    "_meta": {
+      "type": "object",
+      "required": ["org.paymentauth/receipt"],
+      "properties": {
+        "org.paymentauth/receipt": { "$ref": "receipt.schema.json" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content", "structuredContent", "isError"],
+      "properties": {
+        "content": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["type", "name", "uri"],
+            "properties": {
+              "type": { "const": "resource_link" },
+              "name": { "type": "string", "minLength": 1 },
+              "uri": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "structuredContent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["artifact"],
+          "properties": {
+            "artifact": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "url", "orderReference"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "url": { "type": "string", "format": "uri" },
+                "orderReference": { "type": "string", "pattern": "^pi_" }
+              }
+            }
+          }
+        },
+        "isError": { "const": false }
+      }
+    }
+  },
+  "allOf": [{
+    "if": { "properties": { "status": { "const": "completed" } } },
+    "then": { "required": ["result"] }
+  }]
+}

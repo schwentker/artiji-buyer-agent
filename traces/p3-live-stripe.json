@@ -1,0 +1,46 @@
+{
+  "capturedAt": "2026-08-29T01:13:24.442Z",
+  "mode": "Stripe test mode",
+  "amountMinor": 15000,
+  "currency": "USD",
+  "challenge": {
+    "httpStatus": 200,
+    "jsonRpcErrorCode": -32042,
+    "paymentHttpStatus": 402
+  },
+  "paid": {
+    "httpStatus": 200,
+    "receipt": {
+      "challengeId": "d7658feb-37f6-480f-88a4-92e01e7a2a1d",
+      "method": "stripe",
+      "reference": "pi_3U9apjJLQJGtDcdp1soLay0Z",
+      "status": "succeeded",
+      "timestamp": "2026-08-29T01:13:23.000Z"
+    },
+    "taskIdSha256": "1bed822f62fe4b2f6e8c7ee23172061f0ee965321dc489926aa9d9b685ac4e56",
+    "rawResponseSha256": "6f21e3b4b8e6308290232ee5c58e461f25e74e8620ff36ab7b3b5b0e1d48139e"
+  },
+  "replay": {
+    "httpStatus": 200,
+    "byteIdentical": true,
+    "rawResponseSha256": "6f21e3b4b8e6308290232ee5c58e461f25e74e8620ff36ab7b3b5b0e1d48139e"
+  },
+  "tasksGet": {
+    "httpStatus": 200,
+    "resolves": true,
+    "receiptPreserved": true,
+    "verification": "Read-only comparison of the stored live receipt and paid response after correcting an order-sensitive JSON comparison in the trace script."
+  },
+  "stripeRequestsFromSeller": 1,
+  "database": {
+    "orders": 1,
+    "paymentIntents": 1,
+    "tasks": 1,
+    "receipts": 1
+  },
+  "redactions": [
+    "taskId bearer capability",
+    "Stripe secret key",
+    "payer credential"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "capturedAt": "2026-08-28T19:06:09-07:00",
+  "scenario": "idempotent-replay",
+  "gateway": "local transparent MCP observability proxy",
+  "events": 3,
+  "responseRawSha256": [
+    "b33aaf42a01543422aae358c8f8bdf8ade39e302c3bf199f416d174341cc2a79",
+    "d3944d71ed6ed1e98793ad3c22257534a36f518346c918e8425462850779c88d",
+    "d3944d71ed6ed1e98793ad3c22257534a36f518346c918e8425462850779c88d"
+  ],
+  "replayByteIdentical": true,
+  "paymentSemanticsDecoded": false,
+  "note": "Challenge/credential/receipt were observed as opaque JSON-RPC fields; no payment decoder exists in the proxy."
+}

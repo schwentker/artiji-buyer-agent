@@ -1,0 +1,50 @@
+{
+  "phase_id": "P2",
+  "model_snapshot": "gpt-5.6-terra, cutoff 2026-02-16, policy verified 2026-08-28",
+  "effort": "medium",
+  "elapsed_minutes": 27,
+  "status": "COMPLETE",
+  "actions_taken": [
+    "Implemented buyer offer inspection over the task-required order_reading tool and xyz.artiji/commerce extension.",
+    "Duplicated all six material terms in the standard MCP tool description and in structured extension fields.",
+    "Implemented refusal before approval or payment when the tool, structured fields, or description disclosure is incomplete.",
+    "Wired the USD 150 decision through an injected TrueForge human-checkpoint approval port; P2 never calls the payment handler.",
+    "Added six append-only gap-log entries, one for each buyer-required disclosure field absent from standard MCP/MPP metadata.",
+    "Ran the Node 24 test suite: five tests pass; the P3 idempotency and P4 cold-resume tests remain intentionally red."
+  ],
+  "key_results": [
+    "The extension contains exactly six structured disclosure fields: price, fulfillmentMode, expectedWindow, resultType, refundPolicy, and cancellationPolicy.",
+    "A missing cancellationPolicy produces MATERIAL_TERMS_INCOMPLETE with paymentAttempted=false and approvalRequested=false.",
+    "With complete disclosure, the USD 150 purchase reaches the human approval port and returns APPROVAL_PENDING without a payment attempt.",
+    "The baseline tool description independently carries all six terms, so a client can see them even when it ignores extension metadata."
+  ],
+  "blockers": [],
+  "assumptions_made": [
+    {
+      "assumption": "The six structured terms belong under xyz.artiji/commerce until a standard MCP payment/commerce discovery representation exists.",
+      "tier": "OFFICIAL + INFERRED",
+      "invalidation_condition": "A ratified MCP or MPP extension normatively defines these fields for MCP tools."
+    },
+    {
+      "assumption": "The injected approval callback faithfully represents the point where TrueForge's human-checkpoint configuration will be attached.",
+      "tier": "INFERRED",
+      "invalidation_condition": "TrueForge's configured approval API cannot invoke an application callback or requires a different state contract."
+    }
+  ],
+  "gap_log_entries_added": 6,
+  "extension_fields_added": [
+    "price — standard MCP metadata has no structured paid-tool amount/currency field.",
+    "fulfillmentMode — standard MCP metadata has no immediate-versus-deferred fulfillment field.",
+    "expectedWindow — standard MCP metadata has no fulfillment-window field.",
+    "resultType — standard MCP Tasks has no expected deferred-artifact type field.",
+    "refundPolicy — standard MCP/MPP metadata has no merchant refund-policy field.",
+    "cancellationPolicy — standard MCP Tasks has no paid-tool cancellation-policy field."
+  ],
+  "scope_creep_surfaced": [
+    "No TrueForge model provider or live UI approval configuration was created; the tested callback is the application boundary and avoids requiring a separate model credential in P2.",
+    "No payment credential was sent and no Stripe API call occurred; money-path implementation remains P3."
+  ],
+  "commit_sha": "SELF",
+  "next_phase_ready": true,
+  "next_phase_readiness_reason": "Disclosure and approval contracts pass, and P3 can implement the isolated Stripe test-mode payment and durable idempotency path only after the literal token go."
+}

@@ -41,3 +41,103 @@ This log is append-only. Tiers: `OFFICIAL`, `COMMUNITY`, `INFERRED`, `TEMPORAL`.
 - Reproduction: Read `draft-stripe-charge-00` “Verification Procedure,” “Settlement Procedure,” and “Idempotency”; read the core draft's challenge binding and replay requirements; search both for a merchant-scoped buyer idempotency record that binds the eventual task (`NOT_FOUND`).
 - Sections consulted: `draft-stripe-charge-00` / Idempotency. `draft-httpauth-payment-00` / Challenge Binding; Replay Attacks. End-to-end logical purchase replay contract: `NOT_FOUND`.
 - Invalidation condition: Core, Stripe method, or MPP-over-MCP transport standardizes a durable logical-purchase idempotency contract including returned asynchronous work handles.
+
+## P2-001 — Structured tool price is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP tool metadata has no structured price amount, currency, or display field for a paid tool.
+- Assumption for the experiment: `xyz.artiji/commerce.price` carries `{amountMinor, currency, display}` while the same USD 150.00 term remains in the tool description.
+- Reproduction: Read the MCP Tools `Tool` definition and MPP discovery payment-offer object; neither normatively maps a price object onto MCP `tools/list`.
+- Sections consulted: MCP Tools / Tool definition; `draft-payment-discovery-01` / Payment Offer Object. MCP price field: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP payment/commerce extension defines a structured per-tool price field.
+
+## P2-002 — Fulfillment mode is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP has no structured indication that the paid result is manual deferred fulfillment rather than immediate tool output.
+- Assumption for the experiment: `xyz.artiji/commerce.fulfillmentMode` is `manual-deferred`, duplicated in the tool description.
+- Reproduction: Inspect MCP Tools metadata and MPP discovery; neither exposes a deferred-fulfillment mode for an MCP tool.
+- Sections consulted: MCP Tools / Tool definition; `draft-payment-discovery-01` / Payment Offer Object. MCP fulfillment mode: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines fulfillment mode for tools.
+
+## P2-003 — Fulfillment window is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP and MPP discovery do not define a structured expected fulfillment window for a paid MCP task.
+- Assumption for the experiment: `xyz.artiji/commerce.expectedWindow` is `3-5 days`, duplicated in the tool description.
+- Reproduction: Inspect MCP Tools metadata and MPP discovery fields for an SLA or fulfillment deadline (`NOT_FOUND`).
+- Sections consulted: MCP Tools / Tool definition; `draft-payment-discovery-01` / Payment Offer Object. MCP fulfillment window: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines a machine-readable fulfillment window.
+
+## P2-004 — Result type is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: An MCP tool schema can describe input and immediate structured output, but it does not describe the semantic artifact a deferred paid task will later deliver.
+- Assumption for the experiment: `xyz.artiji/commerce.resultType` is `full chart analysis artifact`, duplicated in the tool description.
+- Reproduction: Compare MCP Tools input/output schema semantics with MCP Tasks task creation and polling; no field describes the expected deferred artifact type.
+- Sections consulted: MCP Tools / Tool definition; MCP Tasks / Task Creation; Task Polling. Deferred result type: `NOT_FOUND`.
+- Invalidation condition: MCP Tasks or a ratified commerce extension defines an expected result-artifact type.
+
+## P2-005 — Refund policy is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: Neither MCP tool metadata nor the MPP Stripe charge method carries a merchant refund policy for a deferred paid tool.
+- Assumption for the experiment: `xyz.artiji/commerce.refundPolicy` is `full refund if fulfillment cannot be completed`, duplicated in the tool description.
+- Reproduction: Search MCP Tools, MCP Tasks, MPP core, and the Stripe charge method for a merchant refund-policy field (`NOT_FOUND`).
+- Sections consulted: MCP Tools / Tool definition; MCP Tasks draft; `draft-httpauth-payment-00`; `draft-stripe-charge-00`. Refund policy: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines a refund-policy field.
+
+## P2-006 — Cancellation policy is not standard MCP metadata
+
+- Timestamp: 2026-08-28T18:01:04-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP Tasks supports task lifecycle states but does not define merchant cancellation rights or a paid tool's cancellation policy.
+- Assumption for the experiment: `xyz.artiji/commerce.cancellationPolicy` is `cancellable before payment confirmation`, duplicated in the tool description.
+- Reproduction: Search MCP Tasks and MPP-over-MCP for cancellation policy or merchant cancellation terms (`NOT_FOUND`).
+- Sections consulted: MCP Tasks / lifecycle; `draft-payment-transport-mcp-00`. Paid-tool cancellation policy: `NOT_FOUND`.
+- Invalidation condition: A ratified MCP commerce/payment extension defines cancellation policy.
+
+## P3-001 — Paid task claim identity and transferability are not composed across MPP and MCP Tasks
+
+- Timestamp: 2026-08-28T18:13:24-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MPP-over-MCP does not bind the payer or payment credential to the returned MCP task, while MCP Tasks permits opaque high-entropy task IDs but does not define whether a paid task claim should be bearer-transferable or proof-of-possession-bound.
+- Assumption for the experiment: A 256-bit random `taskId` is a transferable bearer capability. Possession authorizes `tasks/get`; raw task IDs are persisted locally and excluded from committed traces.
+- Reproduction: Read MPP-over-MCP Payment Receipt and MCP Covered Operations, then MCP Tasks Security Considerations; search for payer identity, task claimant, proof of possession, and transferability across the two drafts (`NOT_FOUND`).
+- Sections consulted: `draft-payment-transport-mcp-00` / Payment Receipt; MCP Covered Operations. MCP Tasks / Security Considerations. Cross-spec paid-task claim model: `NOT_FOUND`.
+- Invalidation condition: A ratified MPP/MCP Tasks composition rule binds payer identity or proof material to task access, or normatively specifies bearer transferability.
+
+## P4-001 — Receipt preservation across task polling is implementation-defined
+
+- Timestamp: 2026-08-28T19:00:35-07:00
+- Tier: OFFICIAL + TEMPORAL + INFERRED
+- What the specifications did not answer: Neither MPP-over-MCP nor MCP Tasks requires the payment receipt attached to task creation to be returned on every later `tasks/get` response or task notification.
+- Assumption for the experiment: The seller persists one byte-equivalent receipt-to-task relation and repeats the receipt on every authoritative `tasks/get`; the buyer rejects any missing or changed receipt.
+- Reproduction: Pay the synthetic task, persist buyer state, send SIGKILL to that buyer process, restart a different process with only the SQLite state, and poll `tasks/get` three times. The custom seller preserved the receipt; a controlled mismatched-receipt response produced `RECEIPT_CORRELATION_MISMATCH`.
+- Sections consulted: `draft-payment-transport-mcp-00` / Payment Receipt; MCP Covered Operations. MCP Tasks / Task Polling; Task Status Notifications. Receipt lifecycle rule: `NOT_FOUND`.
+- Invalidation condition: A ratified MPP-over-MCP or MCP Tasks revision requires receipt-to-task binding and receipt preservation across task reads and notifications.
+
+## P4-002 — Deferred artifact-to-order correlation has no standard result shape
+
+- Timestamp: 2026-08-28T19:00:35-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP Tasks defines task state but not a standard artifact identity or payment-order correlation field for a completed paid task.
+- Assumption for the experiment: The seller's tool-specific artifact carries `orderReference`, equal to the persisted payment receipt reference, and binds it atomically before status becomes `completed`.
+- Reproduction: Complete a paid fixture with a matching artifact reference, then retry with a null URL and with a mismatched order reference. The valid artifact completes; both invalid forms are rejected.
+- Sections consulted: MCP Tasks / Task Results; `draft-payment-transport-mcp-00` / Payment Receipt. Standard paid-artifact order correlation: `NOT_FOUND`.
+- Invalidation condition: MCP Tasks or an MPP composition rule defines artifact identity and correlation for deferred paid results.
+
+## P5-001 — MCP observability has no paid-call semantic model
+
+- Timestamp: 2026-08-28T19:06:09-07:00
+- Tier: TEMPORAL + INFERRED
+- What the specifications did not answer: The local MCP proxy can record JSON-RPC methods, error codes, opaque `_meta` keys, and raw-body hashes, but neither MCP observability nor the available gateway surface defines a semantic event for challenge, credential, PaymentIntent, receipt, or paid-task lifecycle.
+- Assumption for the experiment: A transparent proxy is sufficient evidence capture; it must not invent a decoder or claim that a payment challenge/receipt is understood by MCP tooling.
+- Reproduction: Route idempotent replay, cold restart, and full lifecycle through the proxy. All three traces record `paymentSemanticsDecoded=false`; only protocol-level fields and hashes are available.
+- Sections consulted: TrueForge local-mode/API materials; MCP Tools and MCP Tasks lifecycle. Paid-call observability event model: `NOT_FOUND`.
+- Invalidation condition: TrueForge or an MCP gateway adds a documented paid-call trace schema that decodes and correlates payment challenge, receipt, and task events.

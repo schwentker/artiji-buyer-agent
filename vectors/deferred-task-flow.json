@@ -1,0 +1,101 @@
+{
+  "format": "artiji-buyer-agent-byte-exact-http-entity-v2",
+  "fixture": {
+    "syntheticOnly": true,
+    "taskIdIsNonSecretDeterministicTestData": true,
+    "paymentProvider": "fake Stripe boundary",
+    "stripeRequests": 1,
+    "conformanceScope": "single-implementation tools/call task creation and tasks/get wire flow"
+  },
+  "vectors": {
+    "challenge": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"_meta\":{\"io.modelcontextprotocol/clientCapabilities\":{\"extensions\":{\"io.modelcontextprotocol/tasks\":{}}}},\"arguments\":{\"idempotencyKey\":\"vector-idempotency-key-00000001\",\"syntheticSubject\":\"synthetic-vector-subject\"},\"name\":\"order_reading\"}}",
+        "sha256": "0ab64ac163f30fbbb57c7c40ed61c5a75216dbdf349626088ee7c3c5c04a2e9d"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"error\":{\"code\":-32042,\"data\":{\"httpStatus\":402,\"org.paymentauth/challenge\":[{\"expires\":\"2026-08-29T12:15:00.000Z\",\"id\":\"challenge-vector-0001\",\"intent\":\"charge\",\"method\":\"stripe\",\"realm\":\"artiji-buyer-agent.local\",\"request\":{\"amount\":15000,\"currency\":\"USD\",\"description\":\"Artiji individual deep reflection test fixture\",\"externalId\":\"vector-idempotency-key-00000001\",\"methodDetails\":{\"paymentMethodTypes\":[\"card\"]}}}]},\"message\":\"Payment required\"},\"id\":1,\"jsonrpc\":\"2.0\"}",
+        "sha256": "cf33080275d0980615f834138eb7265fdbc057fd611fa1a908fffb793d467134"
+      }
+    },
+    "paidSuccess": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"_meta\":{\"io.modelcontextprotocol/clientCapabilities\":{\"extensions\":{\"io.modelcontextprotocol/tasks\":{}}},\"org.paymentauth/credential\":{\"paymentMethod\":\"pm_card_visa\"}},\"arguments\":{\"idempotencyKey\":\"vector-idempotency-key-00000001\",\"syntheticSubject\":\"synthetic-vector-subject\"},\"name\":\"order_reading\"}}",
+        "sha256": "a6e3d1220e6e7f75b417fe59fa3c2b65135a346eeb3cc5a9867003fe8ed3946a"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"result\":{\"_meta\":{\"org.paymentauth/receipt\":{\"challengeId\":\"challenge-vector-0001\",\"method\":\"stripe\",\"reference\":\"pi_vector_test_0001\",\"status\":\"succeeded\",\"timestamp\":\"2026-08-29T12:00:00.000Z\"}},\"createdAt\":\"2026-08-29T12:00:00.000Z\",\"lastUpdatedAt\":\"2026-08-29T12:00:00.000Z\",\"resultType\":\"task\",\"status\":\"working\",\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"ttlMs\":null}}",
+        "sha256": "8fe03291eb74e3fe812f10a7d1e2bce6bf92dd9baca1a05deb9b1abb476d3d1e"
+      }
+    },
+    "replay": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"_meta\":{\"io.modelcontextprotocol/clientCapabilities\":{\"extensions\":{\"io.modelcontextprotocol/tasks\":{}}},\"org.paymentauth/credential\":{\"paymentMethod\":\"pm_card_visa\"}},\"arguments\":{\"idempotencyKey\":\"vector-idempotency-key-00000001\",\"syntheticSubject\":\"synthetic-vector-subject\"},\"name\":\"order_reading\"}}",
+        "sha256": "a6e3d1220e6e7f75b417fe59fa3c2b65135a346eeb3cc5a9867003fe8ed3946a"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"id\":2,\"jsonrpc\":\"2.0\",\"result\":{\"_meta\":{\"org.paymentauth/receipt\":{\"challengeId\":\"challenge-vector-0001\",\"method\":\"stripe\",\"reference\":\"pi_vector_test_0001\",\"status\":\"succeeded\",\"timestamp\":\"2026-08-29T12:00:00.000Z\"}},\"createdAt\":\"2026-08-29T12:00:00.000Z\",\"lastUpdatedAt\":\"2026-08-29T12:00:00.000Z\",\"resultType\":\"task\",\"status\":\"working\",\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"ttlMs\":null}}",
+        "sha256": "8fe03291eb74e3fe812f10a7d1e2bce6bf92dd9baca1a05deb9b1abb476d3d1e"
+      }
+    },
+    "poll": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "headers": {
+          "Content-Type": "application/json",
+          "Mcp-Method": "tasks/get",
+          "Mcp-Name": "cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA"
+        },
+        "body": "{\"id\":3,\"jsonrpc\":\"2.0\",\"method\":\"tasks/get\",\"params\":{\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\"}}",
+        "sha256": "337a659169ccaddba20dce90d0f2e52ba2fb8ae7fb7b1916fda84d690ff1c022"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"resultType\":\"complete\",\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"status\":\"working\",\"createdAt\":\"2026-08-29T12:00:00.000Z\",\"lastUpdatedAt\":\"2026-08-29T12:00:00.000Z\",\"ttlMs\":null,\"_meta\":{\"org.paymentauth/receipt\":{\"status\":\"succeeded\",\"method\":\"stripe\",\"timestamp\":\"2026-08-29T12:00:00.000Z\",\"reference\":\"pi_vector_test_0001\",\"challengeId\":\"challenge-vector-0001\"}}}}",
+        "sha256": "1a4bc98db2a546b6846889dda86b02f70ad7aad02d9cddc37a46750c175117cc"
+      }
+    },
+    "completed": {
+      "request": {
+        "method": "POST",
+        "path": "/mcp",
+        "headers": {
+          "Content-Type": "application/json",
+          "Mcp-Method": "tasks/get",
+          "Mcp-Name": "cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA"
+        },
+        "body": "{\"id\":4,\"jsonrpc\":\"2.0\",\"method\":\"tasks/get\",\"params\":{\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\"}}",
+        "sha256": "0ff0bb128c716430f6e9b8220bd15fd3ca5fc7163d92aa493ea0e2f5a7e3a226"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": "{\"jsonrpc\":\"2.0\",\"id\":4,\"result\":{\"resultType\":\"complete\",\"taskId\":\"cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA\",\"status\":\"completed\",\"createdAt\":\"2026-08-29T12:00:00.000Z\",\"lastUpdatedAt\":\"2026-08-29T12:00:00.000Z\",\"ttlMs\":null,\"result\":{\"content\":[{\"type\":\"resource_link\",\"name\":\"artifact-vector-0001\",\"uri\":\"https://artifacts.example.test/vector-0001\"}],\"structuredContent\":{\"artifact\":{\"id\":\"artifact-vector-0001\",\"url\":\"https://artifacts.example.test/vector-0001\",\"orderReference\":\"pi_vector_test_0001\"}},\"isError\":false},\"_meta\":{\"org.paymentauth/receipt\":{\"status\":\"succeeded\",\"method\":\"stripe\",\"timestamp\":\"2026-08-29T12:00:00.000Z\",\"reference\":\"pi_vector_test_0001\",\"challengeId\":\"challenge-vector-0001\"}}}}",
+        "sha256": "d1ad655113c40563e82d98cd9b0f687073dde3353088e74b2434d6c55bb82081"
+      }
+    }
+  }
+}

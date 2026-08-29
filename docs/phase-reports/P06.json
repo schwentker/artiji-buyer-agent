@@ -1,0 +1,62 @@
+{
+  "phase_id": "P6",
+  "model_snapshot": "gpt-5.6-sol, cutoff 2026-02-16, policy verified 2026-08-28",
+  "effort": "xhigh",
+  "elapsed_minutes": 75,
+  "status": "COMPLETE",
+  "actions_taken": [
+    "Audited all six top-level xyz.artiji/commerce fields and separated field-category gaps from merchant-chosen values.",
+    "Drafted a minimal normative MPP-over-MCP addition binding the existing receipt to taskId and preserving the same receipt values across tasks/get and notifications/tasks.",
+    "Generated deterministic byte-exact HTTP entity-body vectors for challenge, paid success, replay, working poll, and completed poll.",
+    "Detected that the original fixture used a reduced task shape, documented the limitation, and stopped short of calling those vectors conformance evidence.",
+    "On operator-approved revision, added the per-request Tasks capability, current task discriminators and lifecycle fields, terminal CallToolResult nesting, and task routing headers.",
+    "Regenerated the vector set and added reproduction assertions for request headers, task shapes, terminal resource correlation, every body hash, and byte-identical replay.",
+    "Updated the 249-word issue #292 follow-up and all material limitation statements without posting externally."
+  ],
+  "key_results": [
+    "All 6/6 extension fields remain SPEC_GAP at the field-category level; their eight scalar values remain merchant-specific.",
+    "Discovery does not compose cleanly for the required paid deferred-service terms, while the runtime flow still depends on implementation-defined idempotency, claim, receipt-binding, and artifact-correlation rules.",
+    "The minimal upstream change needs no new field and belongs only in MPP-over-MCP transport composition, not MPP core or the Stripe method.",
+    "The revised task flow uses resultType=task for creation, resultType=complete for polling, required lifecycle fields, terminal result nesting, client capability declaration, and polling routing headers.",
+    "Paid success and replay are byte-identical, use one fake provider request, and preserve the same receipt values through working and completed polls.",
+    "The full P1-P6 revised suite passes 16/16 tests.",
+    "The regenerated vectors are credible single-implementation task-wire evidence, not a complete MCP server or multi-implementation interoperability suite."
+  ],
+  "blockers": [],
+  "assumptions_made": [
+    {
+      "assumption": "SPEC_GAP classifies a missing interoperable field category, while each merchant remains responsible for the value and policy content.",
+      "tier": "INFERRED",
+      "invalidation_condition": "Reviewers define merchant-specific to include every standard category whose value is selected by a merchant."
+    },
+    {
+      "assumption": "The same Payment Receipt means the same logical receipt values carried under the existing org.paymentauth/receipt key, not byte-identical JSON serialization and not new identity or settlement fields.",
+      "tier": "INFERRED",
+      "invalidation_condition": "The transport draft defines a different receipt replacement, refresh, or lifecycle model."
+    },
+    {
+      "assumption": "The five-vector scope can demonstrate the tools/call task creation and tasks/get wire path without claiming complete MCP Tasks extension support.",
+      "tier": "OFFICIAL + INFERRED",
+      "invalidation_condition": "Reviewers require server/discover, cancellation, subscriptions, notifications, or a second implementation before accepting any scoped task-wire evidence."
+    }
+  ],
+  "gap_log_entries_added": 0,
+  "extension_fields_added": [],
+  "scope_creep_surfaced": [
+    "A complete MCP server, server/discover exchange, tasks/update, tasks/cancel, and notification subscription transport were not added.",
+    "The six discovery gaps were not folded into the receipt lifecycle diff; they require separate design work.",
+    "Historical P3-P5 trace exports were not rewritten to look like post-revision runs.",
+    "No public issue comment or pull request was posted.",
+    "No hosted gateway, second Stripe payment, refund, dispute, or settlement-finality work was added."
+  ],
+  "commit_sha": "d4f8a651bde330cf1b284e71418d69deb3b610f4",
+  "next_phase_ready": false,
+  "next_phase_readiness_reason": "The six-phase plan and the approved bounded P6 task-wire revision are complete. The draft and vectors are ready for scoped review; external publication remains an explicit operator action.",
+  "revision": {
+    "date": "2026-08-28",
+    "reason": "The operator selected Option 1 after P6: correct the current MCP Tasks wire mismatch and regenerate the evidence before publication.",
+    "model_snapshot": "gpt-5.6-sol, cutoff 2026-02-16, policy verified 2026-08-28",
+    "effort": "xhigh",
+    "commit_sha": "SELF"
+  }
+}

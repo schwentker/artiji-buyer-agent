@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artiji-buyer-agent.local/schemas/payment-challenge.schema.json",
+  "title": "MPP Stripe charge payment challenge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "realm", "method", "intent", "request", "expires"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "realm": { "type": "string", "minLength": 1 },
+    "method": { "const": "stripe" },
+    "intent": { "const": "charge" },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "currency", "externalId", "methodDetails"],
+      "properties": {
+        "amount": { "type": "integer", "minimum": 1 },
+        "currency": { "const": "USD" },
+        "description": { "type": "string" },
+        "externalId": { "type": "string", "minLength": 1 },
+        "methodDetails": { "type": "object" }
+      }
+    },
+    "expires": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "phase_id": "P4",
+  "model_snapshot": "gpt-5.6-sol, cutoff 2026-02-16, policy verified 2026-08-28",
+  "effort": "high",
+  "elapsed_minutes": 31,
+  "status": "COMPLETE",
+  "actions_taken": [
+    "Ran the paid buyer in child process 13639, persisted payment state, and terminated it with SIGKILL.",
+    "Started cold buyer process 13640 with only the persisted SQLite state and seller URL.",
+    "Implemented authoritative tasks/get polling with receipt and taskId verification on every response; wake notifications are ignored as state.",
+    "Implemented an operator fixture that atomically binds artifact ID, URL, and order reference before completed status.",
+    "Implemented buyer verification of artifact presence and payment-order correlation.",
+    "Added rejection tests for null artifact URL, mismatched artifact order reference, and mismatched polling receipt.",
+    "Captured a redacted cold-restart trace with the bearer taskId replaced by its SHA-256 hash."
+  ],
+  "key_results": [
+    "A different cold process resumed successfully from SQLite after SIGKILL and required no in-memory state from the paid process.",
+    "tasks/get was polled three times and was the only authoritative lifecycle source; a fabricated completed notification was treated only as a wake hint.",
+    "The same payment receipt survived every valid poll because the seller explicitly preserved it; the specifications do not require that behavior.",
+    "A controlled receipt mismatch produced RECEIPT_CORRELATION_MISMATCH.",
+    "Completion with a null artifact URL was rejected at both seller and buyer boundaries.",
+    "The buyer accepted the artifact only when orderReference matched receipt reference pi_p4_cold_restart.",
+    "All P1-P4 tests pass."
+  ],
+  "blockers": [],
+  "assumptions_made": [
+    {
+      "assumption": "Task notifications are wake-up hints only; tasks/get is authoritative after every wake and timer.",
+      "tier": "OFFICIAL + INFERRED",
+      "invalidation_condition": "MCP Tasks normatively makes a notification authoritative without a confirming tasks/get."
+    },
+    {
+      "assumption": "A tool-specific artifact orderReference equal to the Stripe receipt reference is sufficient end-to-end order correlation.",
+      "tier": "INFERRED",
+      "invalidation_condition": "A standard MCP/MPP paid-artifact identity or correlation model is ratified."
+    }
+  ],
+  "gap_log_entries_added": 2,
+  "extension_fields_added": [],
+  "scope_creep_surfaced": [
+    "P4 used the deterministic fake Stripe boundary because P3 already proved the live test-mode payment path; no second live PaymentIntent was created.",
+    "No task notification transport was built. A fabricated notification was injected as a wake hint to prove it cannot override tasks/get.",
+    "No refund, cancellation, capability revocation, or production artifact storage was implemented."
+  ],
+  "commit_sha": "SELF",
+  "next_phase_ready": true,
+  "next_phase_readiness_reason": "The direct lifecycle is green with cold restart and correlation evidence. P5 may evaluate TrueForge trace coverage before adding a separate gateway, but only after the literal token go."
+}
