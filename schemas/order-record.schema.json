@@ -8,8 +8,8 @@
   "properties": {
     "orderId": { "type": "string", "minLength": 1 },
     "merchantId": { "type": "string", "minLength": 1 },
-    "sku": { "const": "order-reading-125" },
-    "amountMinor": { "const": 12500 },
+    "sku": { "const": "individual" },
+    "amountMinor": { "const": 15000 },
     "currency": { "const": "USD" },
     "idempotencyKey": { "$ref": "idempotency-key.schema.json" },
     "requestFingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },

@@ -5,7 +5,7 @@
   "elapsed_minutes": 36,
   "status": "COMPLETE",
   "actions_taken": [
-    "Selected the sole offer: order-reading-125 at USD 125.00 (12500 minor units), and centralized it in schemas/catalog.js.",
+    "Selected the sole offer: current Artiji individual SKU at USD 150.00 (15000 minor units), and centralized it in schemas/catalog.js.",
     "Defined dependency-free JSON Schemas for the payment challenge, receipt, task handle, order record, and buyer-generated idempotency key.",
     "Scaffolded a TrueForge-oriented buyer session boundary with explicit durable-state and approval-gate ports, but no purchase logic.",
     "Scaffolded an isolated seller stub that refuses non-test Stripe secret keys, declares taskSupport=required, and exposes an empty xyz.artiji/commerce extension.",
@@ -13,7 +13,7 @@
     "Wrote and ran the required forward-looking tests. Three are deliberately red because their P2/P3/P4 handlers do not exist; two P1 contract tests pass."
   ],
   "key_results": [
-    "The only configured price is USD 125.00. No $25 or $150 value is present in executable source.",
+    "The only configured price is USD 150.00 for the Artiji individual SKU. The seller surface mirrors its 3-5 day deep-reflection fulfillment shape without importing Artiji code.",
     "Receipt contract contains status, method, timestamp, optional reference, and challengeId; it introduces no settlement field.",
     "The seller tool description contains all six material terms as baseline text, while xyz.artiji/commerce remains {}. No extension field was added.",
     "TrueForge local mode is usable with Node 20+; this machine's default Node 12 cannot run the project test command or the ESM TrueForge CLI."
@@ -21,7 +21,7 @@
   "blockers": [],
   "assumptions_made": [
     {
-      "assumption": "USD 125.00 is the fixed price for the experiment.",
+      "assumption": "USD 150.00 for the current Artiji individual SKU is the fixed price for the experiment.",
       "tier": "INFERRED",
       "invalidation_condition": "The operator explicitly changes the chosen price before a payment handler is implemented."
     },
@@ -40,5 +40,10 @@
   ],
   "commit_sha": "SELF",
   "next_phase_ready": true,
-  "next_phase_readiness_reason": "Contracts are fixed, the extension is empty, and the P2 disclosure/approval implementation can begin only after the literal token go."
+  "next_phase_readiness_reason": "Contracts are fixed at the current individual SKU price, the extension is empty, and the P2 disclosure/approval implementation can begin only after the literal token go.",
+  "amendment": {
+    "date": "2026-08-28",
+    "reason": "The operator supplied the current Artiji SKU list and selected individual at USD 150.00 as the experiment's test case.",
+    "commit_sha": "SELF"
+  }
 }

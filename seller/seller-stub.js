@@ -11,7 +11,7 @@ export function createSellerStub({ stripeSecretKey }) {
     },
     tools: [{
       name: "order_reading",
-      description: "Paid order reading. $125.00 USD; manual deferred fulfillment within 2 business days; returns a signed order-reading artifact; full refund if fulfillment cannot be completed; cancellable before payment confirmation.",
+      description: "Paid individual deep reflection. $150.00 USD; manual deferred fulfillment in 3-5 days; returns a full chart analysis artifact; full refund if fulfillment cannot be completed; cancellable before payment confirmation.",
       execution: { taskSupport: "required" },
       inputSchema: {
         type: "object",

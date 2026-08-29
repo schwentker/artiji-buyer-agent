@@ -3,16 +3,16 @@ import assert from "node:assert/strict";
 import { COMMERCE_EXTENSION_NAMESPACE, FIXED_OFFER } from "../schemas/catalog.js";
 import { createSellerStub } from "../seller/seller-stub.js";
 
-test("P1: the sole offer is fixed at USD 125.00 and the commerce extension is empty", () => {
+test("P1: the sole offer is fixed at USD 150.00 and the commerce extension is empty", () => {
   const seller = createSellerStub({ stripeSecretKey: "sk_test_contract_fixture" });
 
   assert.deepStrictEqual(FIXED_OFFER, {
-    sku: "order-reading-125",
-    amountMinor: 12500,
+    sku: "individual",
+    amountMinor: 15000,
     currency: "USD",
     fulfillmentMode: "manual-deferred",
-    expectedWindow: "within 2 business days",
-    resultType: "signed order-reading artifact",
+    expectedWindow: "3-5 days",
+    resultType: "full chart analysis artifact",
     refundPolicy: "full refund if fulfillment cannot be completed",
     cancellationPolicy: "cancellable before payment confirmation"
   });
