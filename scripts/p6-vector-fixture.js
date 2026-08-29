@@ -4,6 +4,7 @@ import { createMcpHttpServer } from "../seller/mcp-http-server.js";
 import { createOperatorFixture } from "../seller/operator-fixture.js";
 import { createSellerStub } from "../seller/seller-stub.js";
 import { canonicalJson, sha256 } from "../shared/canonical.js";
+import { taskRoutingHeaders, withTasksCapability } from "../shared/mcp-tasks.js";
 
 const FIXED_TASK_ID = "cHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHA";
 
@@ -22,11 +23,12 @@ class VectorStripeClient {
   }
 }
 
-async function post(url, body) {
+async function post(url, body, headers = {}) {
   const requestRaw = canonicalJson(body);
+  const requestHeaders = { "Content-Type": "application/json", ...headers };
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: requestHeaders,
     body: requestRaw
   });
   const responseRaw = await response.text();
@@ -34,7 +36,7 @@ async function post(url, body) {
     request: {
       method: "POST",
       path: "/mcp",
-      contentType: "application/json",
+      headers: requestHeaders,
       body: requestRaw,
       sha256: sha256(requestRaw)
     },
@@ -69,7 +71,11 @@ export async function captureVectorSet() {
     jsonrpc: "2.0",
     id: 1,
     method: "tools/call",
-    params: { name: "order_reading", arguments: arguments_ }
+    params: {
+      name: "order_reading",
+      arguments: arguments_,
+      _meta: withTasksCapability()
+    }
   };
   const paidRequest = {
     jsonrpc: "2.0",
@@ -78,7 +84,9 @@ export async function captureVectorSet() {
     params: {
       name: "order_reading",
       arguments: arguments_,
-      _meta: { "org.paymentauth/credential": { paymentMethod: "pm_card_visa" } }
+      _meta: withTasksCapability({
+        "org.paymentauth/credential": { paymentMethod: "pm_card_visa" }
+      })
     }
   };
 
@@ -91,7 +99,7 @@ export async function captureVectorSet() {
       id: 3,
       method: "tasks/get",
       params: { taskId: FIXED_TASK_ID }
-    });
+    }, taskRoutingHeaders(FIXED_TASK_ID));
     operator.publishArtifact({
       taskId: FIXED_TASK_ID,
       id: "artifact-vector-0001",
@@ -103,14 +111,15 @@ export async function captureVectorSet() {
       id: 4,
       method: "tasks/get",
       params: { taskId: FIXED_TASK_ID }
-    });
+    }, taskRoutingHeaders(FIXED_TASK_ID));
     return {
-      format: "artiji-buyer-agent-byte-exact-http-entity-v1",
+      format: "artiji-buyer-agent-byte-exact-http-entity-v2",
       fixture: {
         syntheticOnly: true,
         taskIdIsNonSecretDeterministicTestData: true,
         paymentProvider: "fake Stripe boundary",
-        stripeRequests: payments.requestCount
+        stripeRequests: payments.requestCount,
+        conformanceScope: "single-implementation tools/call task creation and tasks/get wire flow"
       },
       vectors: { challenge, paidSuccess, replay, poll, completed }
     };

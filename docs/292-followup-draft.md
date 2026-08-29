@@ -12,6 +12,6 @@ The cross-spec seam I found is narrower than the original issue: neither MPP-ove
 
 Minimal transport text:
 
-> When a successful paid response contains an MCP `CreateTaskResult`, its Payment Receipt applies to that result's `taskId`. The server MUST include the same Payment Receipt on every successful `tasks/get` response and every `notifications/tasks` notification for that task.
+> When a successful paid response contains an MCP `CreateTaskResult`, the server MUST associate its Payment Receipt with that result's `taskId`. While the task remains retrievable, the server MUST include the same receipt values on every successful `tasks/get` response and every `notifications/tasks` notification for that task.
 
-Caveat: my fixture currently uses a reduced Task shape and is not an MCP conformance vector. I would fix that before presenting the vectors as interoperability evidence.
+Caveat: the regenerated vectors now use the current task fields, terminal result nesting, client capability declaration, and polling headers, but they remain evidence from one local implementation. I did not test task notifications or cross-implementation interoperability.

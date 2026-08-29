@@ -10,9 +10,9 @@ This belongs in MPP-over-MCP transport composition, not MPP core and not the Str
 
 ### Payment Receipts for MCP Tasks
 
-When a successful paid response contains an MCP `CreateTaskResult`, the Payment Receipt in `org.paymentauth/receipt` applies to the task identified by that result's `taskId`.
+When a successful paid response contains an MCP `CreateTaskResult`, the server MUST associate the Payment Receipt in `org.paymentauth/receipt` with the task identified by that result's `taskId`.
 
-The server MUST preserve that Payment Receipt for the lifetime of the task. Every successful `tasks/get` response for that task and every `notifications/tasks` notification for that task MUST include the same Payment Receipt in `org.paymentauth/receipt`.
+For as long as the task remains retrievable, every successful `tasks/get` response for that task MUST include `org.paymentauth/receipt` in the result `_meta`, containing the same receipt values. Every `notifications/tasks` notification for that task MUST include `org.paymentauth/receipt` in the notification params `_meta`, containing the same receipt values.
 
 ## Deliberate non-changes
 
@@ -27,4 +27,4 @@ The server MUST preserve that Payment Receipt for the lifetime of the task. Ever
 
 MPP-over-MCP requires a receipt on a successful paid JSON-RPC response. MCP Tasks lets that response be a durable `CreateTaskResult` and defines later task state through `tasks/get` and `notifications/tasks`, but neither draft binds the receipt to the returned `taskId` or carries it across that lifecycle. The proposed text closes only that cross-spec seam using the existing receipt metadata key and existing task identifier.
 
-The local seller preserved the receipt and the buyer rejected a changed receipt after cold restart. That proves one implementation can enforce the rule; it does not prove interoperability. The current fixture also uses a reduced, non-conformant Task shape, as recorded in `docs/limitations.md`, so the normative case rests primarily on the specification comparison until the wire fixture is corrected.
+The local seller preserved the receipt and the buyer rejected a changed receipt after cold restart. The regenerated vectors use the current task creation/polling fields, terminal result nesting, capability declaration, and routing headers. This proves one implementation can enforce the proposed rule; it does not prove multi-implementation interoperability. The normative case remains grounded in the specification comparison.

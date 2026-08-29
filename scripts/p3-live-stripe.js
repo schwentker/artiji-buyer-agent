@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { canonicalJson, sha256 } from "../shared/canonical.js";
 import { createMcpHttpServer } from "../seller/mcp-http-server.js";
 import { createSellerStub } from "../seller/seller-stub.js";
+import { taskRoutingHeaders, withTasksCapability } from "../shared/mcp-tasks.js";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 if (!secretKey?.startsWith("sk_test_")) throw new Error("STRIPE_TEST_MODE_REQUIRED");
@@ -20,10 +21,10 @@ server.listen(0, "127.0.0.1");
 await once(server, "listening");
 const url = `http://127.0.0.1:${server.address().port}/mcp`;
 
-async function rpc(body) {
+async function rpc(body, headers = {}) {
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(body)
   });
   return { status: response.status, raw: await response.text() };
@@ -36,7 +37,7 @@ try {
     jsonrpc: "2.0",
     id: 1,
     method: "tools/call",
-    params: { name: "order_reading", arguments: args }
+    params: { name: "order_reading", arguments: args, _meta: withTasksCapability() }
   });
   const paidRequest = {
     jsonrpc: "2.0",
@@ -45,7 +46,9 @@ try {
     params: {
       name: "order_reading",
       arguments: args,
-      _meta: { "org.paymentauth/credential": { paymentMethod: "pm_card_visa" } }
+      _meta: withTasksCapability({
+        "org.paymentauth/credential": { paymentMethod: "pm_card_visa" }
+      })
     }
   };
   const paid = await rpc(paidRequest);
@@ -56,7 +59,7 @@ try {
     id: 3,
     method: "tasks/get",
     params: { taskId: paidBody.result.taskId }
-  });
+  }, taskRoutingHeaders(paidBody.result.taskId));
   const taskBody = JSON.parse(task.raw);
 
   console.log(JSON.stringify({

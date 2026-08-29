@@ -1,5 +1,6 @@
 import { COMMERCE_EXTENSION_NAMESPACE, FIXED_OFFER } from "../schemas/catalog.js";
 import { canonicalJson, sha256 } from "../shared/canonical.js";
+import { hasTasksCapability, TASKS_EXTENSION_ID } from "../shared/mcp-tasks.js";
 import { assertTestModeStripeKey } from "./config.js";
 import { SellerStore } from "./store.js";
 import { StripePaymentClient } from "./stripe-client.js";
@@ -35,7 +36,11 @@ export function createSellerStub({
   now = Date.now
 }) {
   assertTestModeStripeKey(stripeSecretKey);
-  const store = new SellerStore(dbPath, { challengeIdFactory, taskIdFactory });
+  const store = new SellerStore(dbPath, {
+    challengeIdFactory,
+    taskIdFactory,
+    now: () => new Date(now()).toISOString()
+  });
   const payments = stripeClient ?? new StripePaymentClient({ secretKey: stripeSecretKey });
 
   return {
@@ -70,6 +75,22 @@ export function createSellerStub({
     }],
     offer: FIXED_OFFER,
     async purchase(request) {
+      if (!hasTasksCapability(request._meta)) {
+        const body = {
+          jsonrpc: "2.0",
+          id: request.jsonRpcId ?? 1,
+          error: {
+            code: -32003,
+            message: "Missing required client capability",
+            data: {
+              requiredCapabilities: {
+                extensions: { [TASKS_EXTENSION_ID]: {} }
+              }
+            }
+          }
+        };
+        return { httpStatus: 200, rawBody: canonicalJson(body), body };
+      }
       const requestFingerprint = sha256({
         merchantId,
         sku: FIXED_OFFER.sku,
@@ -122,13 +143,12 @@ export function createSellerStub({
           reference: paymentIntent.id,
           challengeId
         }),
-        responseFactory: ({ taskId, receipt }) => canonicalJson({
+        responseFactory: ({ task, receipt }) => canonicalJson({
           jsonrpc: "2.0",
           id: request.jsonRpcId ?? 1,
           result: {
-            taskId,
-            status: "working",
-            pollUri: `/tasks/${taskId}`,
+            resultType: "task",
+            ...task,
             _meta: { [RECEIPT_META]: receipt }
           }
         })
@@ -144,10 +164,23 @@ export function createSellerStub({
         jsonrpc: "2.0",
         id: jsonRpcId,
         result: {
+          resultType: "complete",
           taskId: task.taskId,
           status: task.status,
-          pollUri: task.pollUri,
-          ...(task.artifact ? { artifact: task.artifact } : {}),
+          createdAt: task.createdAt,
+          lastUpdatedAt: task.lastUpdatedAt,
+          ttlMs: task.ttlMs,
+          ...(task.artifact ? {
+            result: {
+              content: [{
+                type: "resource_link",
+                name: task.artifact.id,
+                uri: task.artifact.url
+              }],
+              structuredContent: { artifact: task.artifact },
+              isError: false
+            }
+          } : {}),
           _meta: { [RECEIPT_META]: task.receipt }
         }
       };

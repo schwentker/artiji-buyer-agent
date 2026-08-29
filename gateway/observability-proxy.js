@@ -25,9 +25,14 @@ export function createObservabilityProxy({ targetUrl, scenario, trace = [] }) {
     for await (const chunk of request) chunks.push(chunk);
     const requestRaw = Buffer.concat(chunks).toString("utf8");
     const requestBody = summarize(requestRaw);
+    const upstreamHeaders = {
+      "Content-Type": request.headers["content-type"] ?? "application/json",
+      ...(request.headers["mcp-method"] ? { "Mcp-Method": request.headers["mcp-method"] } : {}),
+      ...(request.headers["mcp-name"] ? { "Mcp-Name": request.headers["mcp-name"] } : {})
+    };
     const upstream = await fetch(targetUrl, {
       method: request.method,
-      headers: { "Content-Type": request.headers["content-type"] ?? "application/json" },
+      headers: upstreamHeaders,
       body: requestRaw
     });
     const responseRaw = await upstream.text();

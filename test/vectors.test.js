@@ -21,13 +21,27 @@ test("P6: committed vectors reproduce byte-for-byte", async () => {
   assert.equal(JSON.parse(actual.vectors.challenge.response.body).error.data.httpStatus, 402);
   assert.equal(actual.vectors.paidSuccess.request.body, actual.vectors.replay.request.body);
   assert.equal(actual.vectors.paidSuccess.response.body, actual.vectors.replay.response.body);
+  assert.deepStrictEqual(actual.vectors.poll.request.headers, {
+    "Content-Type": "application/json",
+    "Mcp-Method": "tasks/get",
+    "Mcp-Name": JSON.parse(actual.vectors.poll.request.body).params.taskId
+  });
   assert.equal(actual.fixture.stripeRequests, 1);
 
-  const paidReceipt = JSON.parse(actual.vectors.paidSuccess.response.body)
-    .result._meta["org.paymentauth/receipt"];
+  const paidResult = JSON.parse(actual.vectors.paidSuccess.response.body).result;
+  assert.equal(paidResult.resultType, "task");
+  assert.equal(paidResult.ttlMs, null);
+  const paidReceipt = paidResult._meta["org.paymentauth/receipt"];
   for (const name of ["poll", "completed"]) {
-    const receipt = JSON.parse(actual.vectors[name].response.body)
-      .result._meta["org.paymentauth/receipt"];
+    const task = JSON.parse(actual.vectors[name].response.body).result;
+    assert.equal(task.resultType, "complete");
+    const receipt = task._meta["org.paymentauth/receipt"];
     assert.deepStrictEqual(receipt, paidReceipt);
   }
+  const completed = JSON.parse(actual.vectors.completed.response.body).result;
+  assert.equal(completed.result.content[0].type, "resource_link");
+  assert.equal(
+    completed.result.content[0].uri,
+    completed.result.structuredContent.artifact.url
+  );
 });

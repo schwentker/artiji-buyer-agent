@@ -19,7 +19,12 @@ test("P3 contract: buyer durably stores the receipt, taskId, idempotency key, an
     idempotencyKey: "replay-key-0000000000000001",
     response: {
       result: {
+        resultType: "task",
         taskId: "0123456789012345678901234567890123456789012",
+        status: "working",
+        createdAt: "2026-08-28T20:00:00.000Z",
+        lastUpdatedAt: "2026-08-28T20:00:00.000Z",
+        ttlMs: null,
         _meta: { "org.paymentauth/receipt": receipt }
       }
     },

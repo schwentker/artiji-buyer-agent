@@ -10,6 +10,30 @@ import { TrueForgeBuyerSession } from "../buyer/harness-session.js";
 import { createMcpHttpServer } from "../seller/mcp-http-server.js";
 import { createOperatorFixture } from "../seller/operator-fixture.js";
 import { createSellerStub } from "../seller/seller-stub.js";
+import { withTasksCapability } from "../shared/mcp-tasks.js";
+
+const TASK_TIMESTAMP = "2026-08-28T20:00:00.000Z";
+
+function polledTask({ taskId, status, receipt, artifact }) {
+  return {
+    result: {
+      resultType: "complete",
+      taskId,
+      status,
+      createdAt: TASK_TIMESTAMP,
+      lastUpdatedAt: TASK_TIMESTAMP,
+      ttlMs: null,
+      ...(artifact ? {
+        result: {
+          content: [{ type: "resource_link", name: artifact.id, uri: artifact.url }],
+          structuredContent: { artifact },
+          isError: false
+        }
+      } : {}),
+      _meta: { "org.paymentauth/receipt": receipt }
+    }
+  };
+}
 
 class FakeStripeClient {
   constructor() {
@@ -133,9 +157,11 @@ test("P4 contract: seller cannot publish completed with a null artifact URL", as
     syntheticSubject: "null-artifact-fixture",
     idempotencyKey: "null-artifact-key-000000000001",
     jsonRpcId: 1,
-    _meta: { "org.paymentauth/credential": { paymentMethod: "pm_card_visa" } }
+    _meta: withTasksCapability({
+      "org.paymentauth/credential": { paymentMethod: "pm_card_visa" }
+    })
   };
-  await seller.purchase({ ...request, _meta: undefined });
+  await seller.purchase({ ...request, _meta: withTasksCapability() });
   const paid = await seller.purchase(request);
   const taskId = paid.body.result.taskId;
 
@@ -167,24 +193,24 @@ test("P4 contract: buyer rejects completed state without artifact correlation", 
 
   await assert.rejects(() => buyer.resumePurchase({
     maxPolls: 1,
-    getTask: async (taskId) => ({
-      result: {
-        taskId,
-        status: "completed",
-        artifact: { id: "artifact", url: null, orderReference: "pi_wrong_order" },
-        _meta: { "org.paymentauth/receipt": receipt }
-      }
+    getTask: async (taskId) => polledTask({
+      taskId,
+      status: "completed",
+      receipt,
+      artifact: { id: "artifact", url: null, orderReference: "pi_wrong_order" }
     })
   }), /COMPLETED_TASK_MISSING_ARTIFACT/);
 
   await assert.rejects(() => buyer.resumePurchase({
     maxPolls: 1,
-    getTask: async (taskId) => ({
-      result: {
-        taskId,
-        status: "completed",
-        artifact: { id: "artifact", url: "https://artifacts.example.test/wrong", orderReference: "pi_wrong_order" },
-        _meta: { "org.paymentauth/receipt": receipt }
+    getTask: async (taskId) => polledTask({
+      taskId,
+      status: "completed",
+      receipt,
+      artifact: {
+        id: "artifact",
+        url: "https://artifacts.example.test/wrong",
+        orderReference: "pi_wrong_order"
       }
     })
   }), /ARTIFACT_ORDER_MISMATCH/);
@@ -213,20 +239,18 @@ test("P4 contract: notifications are wake hints and every tasks/get receipt rema
     maxPolls: 2,
     getTask: async () => {
       pollCount += 1;
-      return {
-        result: {
-          taskId,
-          status: pollCount === 1 ? "working" : "completed",
-          ...(pollCount === 2 ? {
-            artifact: {
-              id: "authoritative-artifact",
-              url: "https://artifacts.example.test/authoritative",
-              orderReference: receipt.reference
-            }
-          } : {}),
-          _meta: { "org.paymentauth/receipt": receipt }
-        }
-      };
+      return polledTask({
+        taskId,
+        status: pollCount === 1 ? "working" : "completed",
+        receipt,
+        ...(pollCount === 2 ? {
+          artifact: {
+            id: "authoritative-artifact",
+            url: "https://artifacts.example.test/authoritative",
+            orderReference: receipt.reference
+          }
+        } : {})
+      });
     },
     waitForWakeHint: async () => ({
       status: "completed",
@@ -240,12 +264,10 @@ test("P4 contract: notifications are wake hints and every tasks/get receipt rema
   const mismatchedReceipt = { ...receipt, reference: "pi_wrong_receipt" };
   await assert.rejects(() => buyer.resumePurchase({
     maxPolls: 1,
-    getTask: async () => ({
-      result: {
-        taskId,
-        status: "working",
-        _meta: { "org.paymentauth/receipt": mismatchedReceipt }
-      }
+    getTask: async () => polledTask({
+      taskId,
+      status: "working",
+      receipt: mismatchedReceipt
     })
   }), /RECEIPT_CORRELATION_MISMATCH/);
 });

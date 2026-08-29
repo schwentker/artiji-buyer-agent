@@ -1,6 +1,7 @@
 import { sha256 } from "../shared/canonical.js";
 import { BuyerStateStore } from "../buyer/state-store.js";
 import { TrueForgeBuyerSession } from "../buyer/harness-session.js";
+import { taskRoutingHeaders, withTasksCapability } from "../shared/mcp-tasks.js";
 
 const [mode, sellerUrl, buyerDbPath] = process.argv.slice(2);
 const sessionId = "p4-cold-restart-session";
@@ -9,10 +10,10 @@ const payerMaterial = { paymentMethod: "pm_card_visa" };
 const stateStore = new BuyerStateStore(buyerDbPath);
 const buyer = new TrueForgeBuyerSession({ sessionId, stateStore });
 
-async function rpc(body) {
+async function rpc(body, headers = {}) {
   const response = await fetch(sellerUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(body)
   });
   return { httpStatus: response.status, body: await response.json() };
@@ -24,7 +25,7 @@ if (mode === "purchase") {
     jsonrpc: "2.0",
     id: 1,
     method: "tools/call",
-    params: { name: "order_reading", arguments: args }
+    params: { name: "order_reading", arguments: args, _meta: withTasksCapability() }
   });
   if (challenge.body.error?.code !== -32042) throw new Error("PAYMENT_CHALLENGE_EXPECTED");
   const paid = await rpc({
@@ -34,7 +35,7 @@ if (mode === "purchase") {
     params: {
       name: "order_reading",
       arguments: args,
-      _meta: { "org.paymentauth/credential": payerMaterial }
+      _meta: withTasksCapability({ "org.paymentauth/credential": payerMaterial })
     }
   });
   await buyer.persistPaidResult({ idempotencyKey, response: paid.body, payerMaterial });
@@ -53,7 +54,7 @@ if (mode === "purchase") {
       id: rpcId++,
       method: "tasks/get",
       params: { taskId }
-    })).body,
+    }, taskRoutingHeaders(taskId))).body,
     waitForWakeHint: async () => new Promise((resolve) => setTimeout(resolve, 50))
   });
   process.stdout.write(`${JSON.stringify({

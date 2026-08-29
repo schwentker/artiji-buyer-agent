@@ -12,10 +12,12 @@ export class IdempotencyConflictError extends Error {
 export class SellerStore {
   constructor(dbPath = ":memory:", {
     challengeIdFactory = randomUUID,
-    taskIdFactory = () => randomBytes(32).toString("base64url")
+    taskIdFactory = () => randomBytes(32).toString("base64url"),
+    now = () => new Date().toISOString()
   } = {}) {
     this.challengeIdFactory = challengeIdFactory;
     this.taskIdFactory = taskIdFactory;
+    this.now = now;
     this.db = new DatabaseSync(dbPath);
     this.db.exec("PRAGMA foreign_keys = ON");
     this.db.exec("PRAGMA journal_mode = WAL");
@@ -37,6 +39,9 @@ export class SellerStore {
         task_id TEXT PRIMARY KEY,
         order_id INTEGER NOT NULL UNIQUE REFERENCES orders(id),
         status TEXT NOT NULL CHECK (status IN ('working', 'completed', 'failed', 'cancelled')),
+        created_at TEXT NOT NULL,
+        last_updated_at TEXT NOT NULL,
+        ttl_ms INTEGER,
         artifact_id TEXT,
         artifact_url TEXT,
         artifact_order_reference TEXT,
@@ -50,6 +55,19 @@ export class SellerStore {
         receipt_json TEXT NOT NULL
       );
     `);
+    const taskColumns = new Set(
+      this.db.prepare("PRAGMA table_info(tasks)").all().map(({ name }) => name)
+    );
+    if (!taskColumns.has("created_at")) this.db.exec("ALTER TABLE tasks ADD COLUMN created_at TEXT");
+    if (!taskColumns.has("last_updated_at")) this.db.exec("ALTER TABLE tasks ADD COLUMN last_updated_at TEXT");
+    if (!taskColumns.has("ttl_ms")) this.db.exec("ALTER TABLE tasks ADD COLUMN ttl_ms INTEGER");
+    const migrationTimestamp = this.now();
+    this.db.prepare(`
+      UPDATE tasks
+      SET created_at = COALESCE(created_at, ?),
+          last_updated_at = COALESCE(last_updated_at, ?)
+      WHERE created_at IS NULL OR last_updated_at IS NULL
+    `).run(migrationTimestamp, migrationTimestamp);
   }
 
   transaction(work) {
@@ -99,13 +117,22 @@ export class SellerStore {
       if (!order) throw new Error("ORDER_NOT_FOUND");
       if (order.response_json) return order.response_json;
 
-      const taskId = this.taskIdFactory();
-      this.db.prepare("INSERT INTO tasks (task_id, order_id, status) VALUES (?, ?, 'working')")
-        .run(taskId, orderId);
-      const receipt = receiptFactory({ taskId, challengeId: order.challenge_id, paymentIntent });
+      const task = {
+        taskId: this.taskIdFactory(),
+        status: "working",
+        createdAt: this.now(),
+        ttlMs: null
+      };
+      task.lastUpdatedAt = task.createdAt;
+      this.db.prepare(`
+        INSERT INTO tasks (
+          task_id, order_id, status, created_at, last_updated_at, ttl_ms
+        ) VALUES (?, ?, 'working', ?, ?, ?)
+      `).run(task.taskId, orderId, task.createdAt, task.lastUpdatedAt, task.ttlMs);
+      const receipt = receiptFactory({ taskId: task.taskId, challengeId: order.challenge_id, paymentIntent });
       this.db.prepare("INSERT INTO receipts (order_id, task_id, receipt_json) VALUES (?, ?, ?)")
-        .run(orderId, taskId, JSON.stringify(receipt));
-      const responseJson = responseFactory({ taskId, receipt });
+        .run(orderId, task.taskId, JSON.stringify(receipt));
+      const responseJson = responseFactory({ task, receipt });
       this.db.prepare(`
         UPDATE orders
         SET payment_intent_id = ?, response_json = ?, state = 'paid'
@@ -126,7 +153,9 @@ export class SellerStore {
     return {
       taskId: row.task_id,
       status: row.status,
-      pollUri: `/tasks/${row.task_id}`,
+      createdAt: row.created_at,
+      lastUpdatedAt: row.last_updated_at,
+      ttlMs: row.ttl_ms === null ? null : Number(row.ttl_ms),
       ...(row.artifact_id ? {
         artifact: {
           id: row.artifact_id,
@@ -151,9 +180,10 @@ export class SellerStore {
       if (task.payment_intent_id !== orderReference) throw new Error("ARTIFACT_ORDER_MISMATCH");
       this.db.prepare(`
         UPDATE tasks
-        SET artifact_id = ?, artifact_url = ?, artifact_order_reference = ?, status = 'completed'
+        SET artifact_id = ?, artifact_url = ?, artifact_order_reference = ?,
+            status = 'completed', last_updated_at = ?
         WHERE task_id = ?
-      `).run(id, url, orderReference, taskId);
+      `).run(id, url, orderReference, this.now(), taskId);
     });
     return this.getTask(taskId);
   }
