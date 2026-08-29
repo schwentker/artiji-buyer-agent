@@ -2,22 +2,24 @@
 
 > An evidence-first buyer-side experiment for paid, deferred MCP tasks.
 
-Most payment demos stop when a charge succeeds. Most task demos start after work has already been authorized. This repository tests the seam between them: an agent discovers a paid tool, sees the material terms, crosses a human approval boundary, pays exactly once, survives process death, resumes a durable task, and verifies that the delivered artifact belongs to the order it paid for.
+This repository tests the seam between a paid tool call and a durable task: an agent discovers a paid tool, sees the material terms, crosses a human approval boundary, pays exactly once, survives process death, resumes a durable task, and verifies that the delivered artifact belongs to the order it paid for.
 
 The goal is not a polished storefront or a claim of production readiness. The goal is a reproducible answer to a narrower question:
 
 **Does MPP-over-MCP compose cleanly with MCP Tasks when payment completes now but fulfillment happens days later?**
 
-The honest answer from this implementation is mixed:
+This isn't a hypothetical seam. Artiji.xyz publishes endpoints for agents to buy Jyotish astrology readings for Silicon Valley founders - readings that take several days to research and validate, not milliseconds to generate. An agent can complete payment immediately, but delivery can't be immediate: if the chart is never issued, the payment is returned. That gap between "paid" and "fulfilled" is exactly where MPP-over-MCP and MCP Tasks have to meet, and neither spec is mature enough yet to say how. Both x402 and MPP are early-stage, and deferred settlement - holding funds against a fulfillment promise rather than capturing them outright - isn't available in either one today. This repository exists to find out what breaks, and what an implementation has to invent on its own, when that composition is actually attempted rather than assumed.
+
+The answer from this implementation is mixed:
 
 - The runtime flow can work with disciplined persistence and correlation rules.
 - Standard MCP discovery did not carry any of the six structured material-term categories this buyer required before payment.
 - The consulted MPP-over-MCP and MCP Tasks drafts did not say that a receipt returned beside a `CreateTaskResult` applies to that task, or require preserving it during the task lifecycle.
 - The implementation can demonstrate a safe local rule for that gap, but one implementation is not interoperability proof.
 
-This is a private evaluation repository. It contains synthetic data, test-mode payment evidence, redacted traces, explicit limitations, and no Artiji production code or credentials.
+This is an evaluation repository. It contains synthetic data, test-mode payment evidence, redacted traces, explicit limitations, and no Artiji production code or credentials.
 
-## Five-minute judge path
+## Five-minute path
 
 Prerequisite: Node.js 22.14 or newer.
 
@@ -204,6 +206,17 @@ The investigation corrected three earlier assumptions instead of preserving them
 
 Historical traces are retained as historical runs. Current wire evidence lives in the regenerated P6 vectors and tests rather than silently rewriting earlier evidence.
 
+### 5. An 81-surface ecosystem survey corroborates the discovery gap at scale
+
+Finding 1 above is about this one implementation. A separate, broader survey (`survey/`, [`reports/stage_a.md`](reports/stage_a.md), [`reports/METHOD.md`](reports/METHOD.md)) tested whether the gap is idiosyncratic to this buyer or general: it coded 81 agent-facing paid surfaces — MCP registry listings, GitHub source implementing x402/AP2/ACP, npm/PyPI packages, and `.well-known` discovery files — for pre-payment disclosure of price, timing, return shape, and recourse.
+
+- **Price disclosed as a resolvable figure before any call: 9/81 (11%)**; 29/81 (36%) carried no price signal at all in the discovery surface.
+- Weakest vectors were exactly where an agent would look first: MCP registry listings (12/20 no price signal) and npm package search (6/20 no price signal, 0/20 a resolvable figure).
+- **Machine-readable recourse: 1/81.** A dispute or support path an agent could act on without a human was essentially absent.
+- Only two surfaces in the whole sample exposed price via a real, spec-shaped machine-readable file rather than prose or nothing: `agentcash.dev/.well-known/x402` and `agentgates.ai/.well-known/mcp.json`.
+
+This is Stage A of a two-stage design — rows are `coder='auto'` and explicitly flagged for human review; inter-coder agreement is Stage B's job, not claimed here. `unknown` is never collapsed into `no`: an absent price signal and an explicitly-stated absence of pricing are coded differently, and the split is reported as three-way in the per-vector table. Treat this as directional evidence that "no standard slot for material terms" (Finding 1) is an ecosystem-level condition, not a gap specific to `xyz.artiji/commerce`'s starting point — not as a conformance claim about any named registry or package host.
+
 ## Specification basis
 
 The experiment pins or names its consulted sources so later drift is detectable:
@@ -365,27 +378,11 @@ The manifest embeds [`trueforge/artiji-cloud-stdio.cjs`](trueforge/artiji-cloud-
 
 TrueFoundry showed the tenant as **Developer Plan** and allowed creation without a billing or upgrade step. The plan limit and model-provider pricing are external account facts, not repository guarantees: check the current TrueFoundry plan page before recreating resources, and remember that model calls may consume separately billed provider tokens even when the MCP Gateway plan is free.
 
-### Move from this iMac to the laptop
-
-The TrueFoundry MCP server and saved agent live in the cloud tenant, so they do not need to be recreated on the laptop. Sign in to the same `artiji.truefoundry.cloud` tenant and open **Agents → Registry → `artiji-buyer-agent`** to run the cloud demo.
-
-To update the earlier local clone on the laptop:
-
-```sh
-cd /path/to/artiji-buyer-agent
-git status --short
-git switch main
-git pull --ff-only origin main
-node --version
-npm test
-```
-
 Use Node.js 22.14 or newer. If `git status --short` prints local work, do not overwrite it: commit it on a laptop-only branch or stash it before switching and pulling. If the hackathon changes are still in an unmerged pull request, fetch and switch to its branch instead:
 
 ```sh
 git fetch origin
-git switch hackathon-judge-readme
-git pull --ff-only origin hackathon-judge-readme
+git pull 
 npm test
 ```
 
@@ -405,6 +402,8 @@ vectors/      current deterministic task-wire request/response evidence
 traces/       redacted historical run summaries
 docs/         gap log, audits, limitations, upstream draft, phase reports
 trueforge/    verified harness boundary and local boot instructions
+survey/       Stage A ecosystem survey scripts (fetch, discover, code)
+reports/      Stage A survey findings and method (see Principal findings §5)
 ```
 
 ## Engineering posture
@@ -426,7 +425,6 @@ This repository is designed so that trust comes from inspectable behavior rather
 - Do not point the seller or buyer at Artiji production services.
 - Treat raw task IDs as bearer capabilities. Committed traces hash them; the deterministic vector task ID is explicitly synthetic and non-secret.
 - The local buyer SQLite database is unencrypted. It is suitable only for this isolated experiment.
-- This repository is private by design for the current evaluation. Access for judges should be granted explicitly; nothing here implies permission to publish customer, credential, or production-system information.
 
 See [`docs/claim-security.md`](docs/claim-security.md) and [`docs/limitations.md`](docs/limitations.md) before extending the experiment.
 
@@ -438,7 +436,7 @@ See [`docs/claim-security.md`](docs/claim-security.md) and [`docs/limitations.md
 - It is not a complete MPP conformance suite.
 - It does not prove cross-implementation interoperability.
 - It does not test refunds, disputes, webhooks, asynchronous card states, or final economic settlement.
-- It does not commit a model-provider credential or preconfigure a judge's local TrueForge workspace.
+- It does not commit a model-provider credential or preconfigure a local TrueForge workspace.
 - It does not prove the six commerce fields are the only possible vocabulary.
 - It does not submit or claim acceptance of the proposed upstream language.
 
@@ -462,7 +460,7 @@ Every phase ended with a committed JSON report. P6 was subsequently revised when
 
 ## Review focus
 
-The most useful review is not “does the demo look smooth?” It is:
+The most useful review probly isnt “does the demo look smooth?” It may be:
 
 1. Are the buyer's pre-payment information requirements reasonable?
 2. Is each `SPEC_GAP` classification supported by the cited surfaces?
