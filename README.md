@@ -19,14 +19,14 @@ This is a private evaluation repository. It contains synthetic data, test-mode p
 
 ## Five-minute judge path
 
-Prerequisite: Node.js 22.5 or newer.
+Prerequisite: Node.js 22.14 or newer.
 
 ```sh
 node --version
 npm test
 ```
 
-Expected result: **16 tests pass** with no package installation and no external service required.
+Expected result: **19 tests pass** with no package installation and no external service required.
 
 Then inspect, in order:
 
@@ -82,6 +82,7 @@ The seller is a new local stub. It mirrors only the bounded domain shape needed 
 ```mermaid
 flowchart LR
     J[Judge or test runner]
+    TF[TrueForge model + agent loop]
     B[Buyer session adapter]
     A[Human approval port]
     BS[(Buyer SQLite)]
@@ -92,6 +93,9 @@ flowchart LR
     O[Operator fixture]
     R[Deferred artifact]
 
+    J --> TF
+    TF -->|discover and call tools| S
+    TF -->|Allow / Deny| J
     J --> B
     B -->|material terms| A
     B <--> BS
@@ -111,13 +115,14 @@ flowchart LR
 | [`buyer/harness-session.js`](buyer/harness-session.js) | Reads material terms, reaches the approval port, persists paid state, validates current MCP task fields, treats `tasks/get` as authoritative, and verifies receipt/artifact correlation. |
 | [`buyer/state-store.js`](buyer/state-store.js) | Stores the buyer's idempotency key, receipt, task capability, payer material, and update time in SQLite so another process can resume. |
 | [`seller/seller-stub.js`](seller/seller-stub.js) | Exposes the fixed offer, emits the payment challenge, enforces the Tasks client capability, creates the paid task, and serializes creation and polling results. |
+| [`seller/mcp-http-server.js`](seller/mcp-http-server.js) | Implements MCP initialization, session IDs, initialized notifications, tool discovery, tool calls, raw `tasks/get`, safe loopback-origin handling, and human-readable diagnostics. Its agent bridge exposes experimental payment/task behavior through ordinary tools for generic harnesses. |
 | [`seller/store.js`](seller/store.js) | Enforces database-level uniqueness, request fingerprinting, durable receipt-to-task binding, task lifecycle timestamps, and atomic completion. |
 | [`seller/stripe-client.js`](seller/stripe-client.js) | Calls Stripe only with an `sk_test_` key and a deterministic server-side idempotency key. |
 | [`gateway/observability-proxy.js`](gateway/observability-proxy.js) | Transparently forwards MCP traffic and routing headers while recording redacted protocol summaries and body hashes. It intentionally does not pretend to understand MPP semantics. |
 | [`seller/operator-fixture.js`](seller/operator-fixture.js) | Publishes a synthetic artifact and binds its identity and payment reference before the task becomes `completed`. |
 | [`shared/mcp-tasks.js`](shared/mcp-tasks.js) | Defines the Tasks capability metadata and required polling routing headers shared by clients and fixtures. |
 
-TrueForge was boot-verified in local mode and the buyer exposes adapter points for its session and human-checkpoint responsibilities. The deterministic suite does not require a running TrueForge process, configured model provider, or hosted gateway. See [`trueforge/README.md`](trueforge/README.md).
+TrueForge can run the live model/tool loop against the local MCP server and own the visible human checkpoint. The deterministic suite still requires neither TrueForge nor a configured model provider. See [`trueforge/README.md`](trueforge/README.md).
 
 ## End-to-end lifecycle
 
@@ -273,15 +278,31 @@ Safety properties:
 
 The committed [`traces/p3-live-stripe.json`](traces/p3-live-stripe.json) records the earlier test-mode run. It is immutable historical evidence and has pre-P6 response hashes.
 
-### Optional: inspect the TrueForge boundary
+### Live agent demo with TrueForge
 
-TrueForge is not required for the tests. To boot the verified local harness separately:
+Terminal 1 starts the dependency-free, synthetic MCP demo server:
 
 ```sh
-npx @truefoundry/trueforge --port 8790
+npm run demo:mcp
 ```
 
-This may download the CLI and requires Node 20 or newer. No model provider or live agent is configured by this repository. Details are in [`trueforge/README.md`](trueforge/README.md).
+It listens at `http://127.0.0.1:8787/mcp`. A browser should open `http://127.0.0.1:8787/` for diagnostics; a browser `GET` to `/mcp` intentionally returns `405` because MCP clients use JSON-RPC `POST` requests there.
+
+Terminal 2 starts the agent harness:
+
+```sh
+npx @truefoundry/trueforge@latest --port 8790
+```
+
+In TrueForge:
+
+1. Configure a model under **Settings → Models**.
+2. Under **Settings → Connectors**, choose **Add MCP Server** and register `http://127.0.0.1:8787/mcp` with no authentication.
+3. Attach the `artiji-commerce` connector to a chat, enable preload, and save it as `artiji-buyer-agent`.
+4. Prompt: `Purchase the $150 Deep Reflection service for synthetic subject demo-founder. Explain the terms and ask before spending.`
+5. Confirm that the agent first calls `inspect_offer`, pauses before the write tool `order_reading`, then calls `get_order_status` and returns the correlated synthetic artifact.
+
+The demo uses a fake Stripe boundary, never accepts production data, auto-completes after 750 ms, and prints redacted `MCP_EVIDENCE` events. It shows TrueForge operating an MCP server; it does not claim TrueForge natively interprets the experimental commerce or Tasks extensions. Details and the suggested agent prompt are in [`trueforge/README.md`](trueforge/README.md).
 
 ## Repository map
 
@@ -325,12 +346,12 @@ See [`docs/claim-security.md`](docs/claim-security.md) and [`docs/limitations.md
 ## What this repository does not claim
 
 - It is not Artiji production.
-- It is not a complete MCP server.
-- It does not implement `server/discover`, task update/cancel, or task notification subscriptions.
+- It implements the core discoverable MCP tool-server path, not every MCP capability.
+- It does not implement resources, prompts, task update/cancel, task notification subscriptions, or every Streamable HTTP delivery mode.
 - It is not a complete MPP conformance suite.
 - It does not prove cross-implementation interoperability.
 - It does not test refunds, disputes, webhooks, asynchronous card states, or final economic settlement.
-- It does not configure a live TrueForge model session or UI approval.
+- It does not commit a model-provider credential or preconfigure a judge's local TrueForge workspace.
 - It does not prove the six commerce fields are the only possible vocabulary.
 - It does not submit or claim acceptance of the proposed upstream language.
 
