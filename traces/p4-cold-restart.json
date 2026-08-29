@@ -1,0 +1,42 @@
+{
+  "capturedAt": "2026-08-28T19:00:35-07:00",
+  "scenario": "synthetic paid task, real process death, cold buyer restart",
+  "paidProcess": {
+    "pid": 13639,
+    "terminatedWith": "SIGKILL",
+    "statePersistedBeforeKill": true
+  },
+  "resumedProcess": {
+    "pid": 13640,
+    "differentProcess": true,
+    "coldResume": true,
+    "authoritativeSource": "tasks/get",
+    "notificationsAuthoritative": false,
+    "pollCount": 3
+  },
+  "correlation": {
+    "taskIdSha256": "16077993e3b896a28e2713d3327c41a9c088e8e65723dcb0ac3394417395b3b9",
+    "receiptReference": "pi_p4_cold_restart",
+    "receiptCheckedOnEveryPoll": true,
+    "mismatchedReceiptRejected": true
+  },
+  "completion": {
+    "artifact": {
+      "id": "artifact-p4-fixture",
+      "url": "https://artifacts.example.test/p4-fixture",
+      "orderReference": "pi_p4_cold_restart"
+    },
+    "artifactAndCompletedStatusCommittedAtomically": true,
+    "nullArtifactUrlRejectedBySeller": true,
+    "nullArtifactUrlRejectedByBuyer": true,
+    "mismatchedOrderReferenceRejectedByBuyer": true
+  },
+  "paymentFixture": {
+    "provider": "deterministic fake Stripe boundary; the live Stripe path was proven in P3",
+    "sellerPaymentRequests": 1
+  },
+  "redactions": [
+    "raw taskId bearer capability",
+    "payer credential"
+  ]
+}

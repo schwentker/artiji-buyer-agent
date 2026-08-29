@@ -144,6 +144,9 @@ export function createSellerStub({ stripeSecretKey, dbPath = ":memory:", stripeC
         }
       };
     },
+    completeTask(taskId, artifact) {
+      return store.completeTask(taskId, artifact);
+    },
     close() {
       store.close();
     }

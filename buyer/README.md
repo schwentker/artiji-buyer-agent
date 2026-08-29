@@ -1,3 +1,3 @@
 # Buyer scaffold
 
-The buyer is designed as a TrueForge session adapter: TrueForge supplies the session runtime and human checkpoint, while `BuyerStateStore` defines the durable commerce-state boundary. P2 implements discovery, disclosure validation, and the approval boundary. P3 durably persists the receipt, task ID, logical-purchase idempotency key, and payer material. P4 adds cold resume.
+The buyer is designed as a TrueForge session adapter: TrueForge supplies the session runtime and human checkpoint, while `BuyerStateStore` defines the durable commerce-state boundary. P2 implements discovery and approval. P3 persists payment state. P4 cold-resumes from SQLite, treats `tasks/get` as authoritative, checks the receipt on every poll, and accepts completion only with a correlated artifact.

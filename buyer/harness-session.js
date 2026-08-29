@@ -1,6 +1,7 @@
 import { ApprovalGate } from "./approval-gate.js";
 import { BuyerStateStore } from "./state-store.js";
 import { COMMERCE_EXTENSION_NAMESPACE, REQUIRED_DISCLOSURE_FIELDS } from "../schemas/catalog.js";
+import { canonicalJson } from "../shared/canonical.js";
 
 /**
  * Adapter boundary for the TrueForge session runtime. The harness runs the
@@ -67,7 +68,40 @@ export class TrueForgeBuyerSession {
     return this.stateStore.save(this.sessionId, { idempotencyKey, receipt, taskId, payerMaterial });
   }
 
-  async resumePurchase() {
-    throw new Error("NOT_IMPLEMENTED: cold restart resume begins in P4");
+  async resumePurchase({
+    getTask,
+    maxPolls = 100,
+    waitForWakeHint = async () => new Promise((resolve) => setTimeout(resolve, 100))
+  }) {
+    const persisted = await this.stateStore.load(this.sessionId);
+    if (!persisted) throw new Error("PERSISTED_PURCHASE_NOT_FOUND");
+
+    for (let pollCount = 1; pollCount <= maxPolls; pollCount += 1) {
+      const response = await getTask(persisted.taskId);
+      const task = response?.result;
+      if (!task || task.taskId !== persisted.taskId) throw new Error("TASK_CORRELATION_MISMATCH");
+      const receipt = task._meta?.["org.paymentauth/receipt"];
+      if (canonicalJson(receipt) !== canonicalJson(persisted.receipt)) {
+        throw new Error("RECEIPT_CORRELATION_MISMATCH");
+      }
+
+      if (task.status === "completed") {
+        if (!task.artifact?.id || !task.artifact?.url) throw new Error("COMPLETED_TASK_MISSING_ARTIFACT");
+        if (task.artifact.orderReference !== persisted.receipt.reference) {
+          throw new Error("ARTIFACT_ORDER_MISMATCH");
+        }
+        return {
+          resumedFromPersistence: true,
+          authoritativeSource: "tasks/get",
+          notificationsAuthoritative: false,
+          pollCount,
+          receipt,
+          artifact: task.artifact
+        };
+      }
+      if (["failed", "cancelled"].includes(task.status)) throw new Error(`TASK_${task.status.toUpperCase()}`);
+      await waitForWakeHint({ taskId: persisted.taskId, pollCount });
+    }
+    throw new Error("TASK_POLL_TIMEOUT");
   }
 }

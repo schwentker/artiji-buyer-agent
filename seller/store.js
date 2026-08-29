@@ -34,7 +34,10 @@ export class SellerStore {
         status TEXT NOT NULL CHECK (status IN ('working', 'completed', 'failed', 'cancelled')),
         artifact_id TEXT,
         artifact_url TEXT,
-        CHECK (status != 'completed' OR (artifact_id IS NOT NULL AND artifact_url IS NOT NULL))
+        artifact_order_reference TEXT,
+        CHECK (status != 'completed' OR (
+          artifact_id IS NOT NULL AND artifact_url IS NOT NULL AND artifact_order_reference IS NOT NULL
+        ))
       );
       CREATE TABLE IF NOT EXISTS receipts (
         order_id INTEGER PRIMARY KEY REFERENCES orders(id),
@@ -119,9 +122,35 @@ export class SellerStore {
       taskId: row.task_id,
       status: row.status,
       pollUri: `/tasks/${row.task_id}`,
-      ...(row.artifact_id ? { artifact: { id: row.artifact_id, url: row.artifact_url } } : {}),
+      ...(row.artifact_id ? {
+        artifact: {
+          id: row.artifact_id,
+          url: row.artifact_url,
+          orderReference: row.artifact_order_reference
+        }
+      } : {}),
       receipt: JSON.parse(row.receipt_json)
     };
+  }
+
+  completeTask(taskId, { id, url, orderReference }) {
+    if (!id || !url || !orderReference) throw new Error("ARTIFACT_REQUIRED_BEFORE_COMPLETION");
+    this.transaction(() => {
+      const task = this.db.prepare(`
+        SELECT t.task_id, o.payment_intent_id
+        FROM tasks t
+        JOIN orders o ON o.id = t.order_id
+        WHERE t.task_id = ?
+      `).get(taskId);
+      if (!task) throw new Error("TASK_NOT_FOUND");
+      if (task.payment_intent_id !== orderReference) throw new Error("ARTIFACT_ORDER_MISMATCH");
+      this.db.prepare(`
+        UPDATE tasks
+        SET artifact_id = ?, artifact_url = ?, artifact_order_reference = ?, status = 'completed'
+        WHERE task_id = ?
+      `).run(id, url, orderReference, taskId);
+    });
+    return this.getTask(taskId);
   }
 
   evidence() {

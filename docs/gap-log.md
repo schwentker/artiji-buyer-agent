@@ -111,3 +111,23 @@ This log is append-only. Tiers: `OFFICIAL`, `COMMUNITY`, `INFERRED`, `TEMPORAL`.
 - Reproduction: Read MPP-over-MCP Payment Receipt and MCP Covered Operations, then MCP Tasks Security Considerations; search for payer identity, task claimant, proof of possession, and transferability across the two drafts (`NOT_FOUND`).
 - Sections consulted: `draft-payment-transport-mcp-00` / Payment Receipt; MCP Covered Operations. MCP Tasks / Security Considerations. Cross-spec paid-task claim model: `NOT_FOUND`.
 - Invalidation condition: A ratified MPP/MCP Tasks composition rule binds payer identity or proof material to task access, or normatively specifies bearer transferability.
+
+## P4-001 — Receipt preservation across task polling is implementation-defined
+
+- Timestamp: 2026-08-28T19:00:35-07:00
+- Tier: OFFICIAL + TEMPORAL + INFERRED
+- What the specifications did not answer: Neither MPP-over-MCP nor MCP Tasks requires the payment receipt attached to task creation to be returned on every later `tasks/get` response or task notification.
+- Assumption for the experiment: The seller persists one byte-equivalent receipt-to-task relation and repeats the receipt on every authoritative `tasks/get`; the buyer rejects any missing or changed receipt.
+- Reproduction: Pay the synthetic task, persist buyer state, send SIGKILL to that buyer process, restart a different process with only the SQLite state, and poll `tasks/get` three times. The custom seller preserved the receipt; a controlled mismatched-receipt response produced `RECEIPT_CORRELATION_MISMATCH`.
+- Sections consulted: `draft-payment-transport-mcp-00` / Payment Receipt; MCP Covered Operations. MCP Tasks / Task Polling; Task Status Notifications. Receipt lifecycle rule: `NOT_FOUND`.
+- Invalidation condition: A ratified MPP-over-MCP or MCP Tasks revision requires receipt-to-task binding and receipt preservation across task reads and notifications.
+
+## P4-002 — Deferred artifact-to-order correlation has no standard result shape
+
+- Timestamp: 2026-08-28T19:00:35-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MCP Tasks defines task state but not a standard artifact identity or payment-order correlation field for a completed paid task.
+- Assumption for the experiment: The seller's tool-specific artifact carries `orderReference`, equal to the persisted payment receipt reference, and binds it atomically before status becomes `completed`.
+- Reproduction: Complete a paid fixture with a matching artifact reference, then retry with a null URL and with a mismatched order reference. The valid artifact completes; both invalid forms are rejected.
+- Sections consulted: MCP Tasks / Task Results; `draft-payment-transport-mcp-00` / Payment Receipt. Standard paid-artifact order correlation: `NOT_FOUND`.
+- Invalidation condition: MCP Tasks or an MPP composition rule defines artifact identity and correlation for deferred paid results.
