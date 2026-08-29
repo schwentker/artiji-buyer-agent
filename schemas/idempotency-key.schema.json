@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artiji-buyer-agent.local/schemas/idempotency-key.schema.json",
+  "title": "Buyer logical-purchase idempotency key",
+  "type": "string",
+  "pattern": "^[A-Za-z0-9_-]{24,128}$",
+  "description": "Buyer-generated stable identifier for one logical purchase; it is paired with a request fingerprint."
+}

@@ -1,0 +1,13 @@
+{
+  "name": "artiji-buyer-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:contracts": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

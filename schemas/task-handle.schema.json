@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artiji-buyer-agent.local/schemas/task-handle.schema.json",
+  "title": "Durable MCP task handle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskId", "status", "pollUri"],
+  "properties": {
+    "taskId": { "type": "string", "minLength": 32 },
+    "status": { "enum": ["working", "input_required", "completed", "failed", "cancelled"] },
+    "pollUri": { "type": "string", "format": "uri-reference" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "url"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}

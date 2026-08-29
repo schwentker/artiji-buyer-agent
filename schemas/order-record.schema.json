@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artiji-buyer-agent.local/schemas/order-record.schema.json",
+  "title": "Buyer-owned purchase record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["orderId", "merchantId", "sku", "amountMinor", "currency", "idempotencyKey", "requestFingerprint", "state"],
+  "properties": {
+    "orderId": { "type": "string", "minLength": 1 },
+    "merchantId": { "type": "string", "minLength": 1 },
+    "sku": { "const": "order-reading-125" },
+    "amountMinor": { "const": 12500 },
+    "currency": { "const": "USD" },
+    "idempotencyKey": { "$ref": "idempotency-key.schema.json" },
+    "requestFingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "state": { "enum": ["terms_reviewed", "approval_pending", "payment_pending", "paid", "fulfilled", "failed"] },
+    "paymentIntentId": { "type": "string", "pattern": "^pi_" },
+    "taskId": { "type": "string", "minLength": 32 }
+  }
+}

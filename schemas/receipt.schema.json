@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artiji-buyer-agent.local/schemas/receipt.schema.json",
+  "title": "MPP-over-MCP payment receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "method", "timestamp", "challengeId"],
+  "properties": {
+    "status": { "const": "succeeded" },
+    "method": { "const": "stripe" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "reference": { "type": "string", "minLength": 1, "description": "Stripe PaymentIntent ID when present" },
+    "challengeId": { "type": "string", "minLength": 1 }
+  }
+}
