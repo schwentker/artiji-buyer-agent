@@ -1,10 +1,39 @@
 import { COMMERCE_EXTENSION_NAMESPACE, FIXED_OFFER } from "../schemas/catalog.js";
+import { canonicalJson, sha256 } from "../shared/canonical.js";
 import { assertTestModeStripeKey } from "./config.js";
+import { SellerStore } from "./store.js";
+import { StripePaymentClient } from "./stripe-client.js";
 
-export function createSellerStub({ stripeSecretKey }) {
+const CHALLENGE_META = "org.paymentauth/challenge";
+const CREDENTIAL_META = "org.paymentauth/credential";
+const RECEIPT_META = "org.paymentauth/receipt";
+
+function buildChallenge(id, request) {
+  return {
+    id,
+    realm: "artiji-buyer-agent.local",
+    method: "stripe",
+    intent: "charge",
+    request: {
+      amount: FIXED_OFFER.amountMinor,
+      currency: FIXED_OFFER.currency,
+      description: "Artiji individual deep reflection test fixture",
+      externalId: request.idempotencyKey,
+      methodDetails: { paymentMethodTypes: ["card"] }
+    },
+    expires: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+  };
+}
+
+export function createSellerStub({ stripeSecretKey, dbPath = ":memory:", stripeClient, merchantId = "seller.local" }) {
   assertTestModeStripeKey(stripeSecretKey);
+  const store = new SellerStore(dbPath);
+  const payments = stripeClient ?? new StripePaymentClient({ secretKey: stripeSecretKey });
 
   return {
+    merchantId,
+    store,
+    payments,
     protocolVersion: "2026-07-28",
     extensions: {
       [COMMERCE_EXTENSION_NAMESPACE]: {
@@ -32,8 +61,91 @@ export function createSellerStub({ stripeSecretKey }) {
       annotations: { readOnlyHint: false, destructiveHint: false }
     }],
     offer: FIXED_OFFER,
-    async purchase(_request) {
-      throw new Error("NOT_IMPLEMENTED: payment and task creation begin in P3");
+    async purchase(request) {
+      const requestFingerprint = sha256({
+        merchantId,
+        sku: FIXED_OFFER.sku,
+        syntheticSubject: request.syntheticSubject,
+        amountMinor: FIXED_OFFER.amountMinor,
+        currency: FIXED_OFFER.currency
+      });
+      const order = store.reserve({
+        merchantId,
+        idempotencyKey: request.idempotencyKey,
+        requestFingerprint,
+        challengeFactory: (id) => buildChallenge(id, request)
+      });
+
+      if (order.response_json) {
+        return { httpStatus: 200, rawBody: order.response_json, body: JSON.parse(order.response_json), replayed: true };
+      }
+
+      const credential = request._meta?.[CREDENTIAL_META];
+      if (!credential) {
+        const body = {
+          jsonrpc: "2.0",
+          id: request.jsonRpcId ?? 1,
+          error: {
+            code: -32042,
+            message: "Payment required",
+            data: { httpStatus: 402, [CHALLENGE_META]: [JSON.parse(order.challenge_json)] }
+          }
+        };
+        return { httpStatus: 200, rawBody: canonicalJson(body), body };
+      }
+
+      const paymentIntent = await payments.createAndConfirm({
+        amountMinor: FIXED_OFFER.amountMinor,
+        currency: FIXED_OFFER.currency,
+        description: "Artiji individual deep reflection test fixture",
+        externalId: request.idempotencyKey,
+        challengeId: order.challenge_id,
+        paymentMethod: credential.paymentMethod,
+        idempotencyKey: order.stripe_idempotency_key
+      });
+
+      const responseJson = store.finalizePaid({
+        orderId: order.id,
+        paymentIntent,
+        receiptFactory: ({ challengeId }) => ({
+          status: "succeeded",
+          method: "stripe",
+          timestamp: new Date(paymentIntent.created * 1000).toISOString(),
+          reference: paymentIntent.id,
+          challengeId
+        }),
+        responseFactory: ({ taskId, receipt }) => canonicalJson({
+          jsonrpc: "2.0",
+          id: request.jsonRpcId ?? 1,
+          result: {
+            taskId,
+            status: "working",
+            pollUri: `/tasks/${taskId}`,
+            _meta: { [RECEIPT_META]: receipt }
+          }
+        })
+      });
+      const body = JSON.parse(responseJson);
+      if (!store.getTask(body.result.taskId)) throw new Error("TASK_NOT_DURABLE_BEFORE_SUCCESS");
+      return { httpStatus: 200, rawBody: responseJson, body, replayed: false };
+    },
+    getTask(taskId, jsonRpcId = 1) {
+      const task = store.getTask(taskId);
+      if (!task) return null;
+      return {
+        jsonrpc: "2.0",
+        id: jsonRpcId,
+        result: {
+          taskId: task.taskId,
+          status: task.status,
+          pollUri: task.pollUri,
+          ...(task.artifact ? { artifact: task.artifact } : {}),
+          _meta: { [RECEIPT_META]: task.receipt }
+        }
+      };
+    },
+    close() {
+      store.close();
     }
   };
 }

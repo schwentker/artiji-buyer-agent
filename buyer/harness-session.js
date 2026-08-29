@@ -60,6 +60,13 @@ export class TrueForgeBuyerSession {
     };
   }
 
+  async persistPaidResult({ idempotencyKey, response, payerMaterial }) {
+    const receipt = response?.result?._meta?.["org.paymentauth/receipt"];
+    const taskId = response?.result?.taskId;
+    if (!receipt || !taskId) throw new Error("INVALID_PAID_RESPONSE");
+    return this.stateStore.save(this.sessionId, { idempotencyKey, receipt, taskId, payerMaterial });
+  }
+
   async resumePurchase() {
     throw new Error("NOT_IMPLEMENTED: cold restart resume begins in P4");
   }

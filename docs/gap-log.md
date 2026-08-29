@@ -101,3 +101,13 @@ This log is append-only. Tiers: `OFFICIAL`, `COMMUNITY`, `INFERRED`, `TEMPORAL`.
 - Reproduction: Search MCP Tasks and MPP-over-MCP for cancellation policy or merchant cancellation terms (`NOT_FOUND`).
 - Sections consulted: MCP Tasks / lifecycle; `draft-payment-transport-mcp-00`. Paid-tool cancellation policy: `NOT_FOUND`.
 - Invalidation condition: A ratified MCP commerce/payment extension defines cancellation policy.
+
+## P3-001 — Paid task claim identity and transferability are not composed across MPP and MCP Tasks
+
+- Timestamp: 2026-08-28T18:13:24-07:00
+- Tier: OFFICIAL + INFERRED
+- What the specifications did not answer: MPP-over-MCP does not bind the payer or payment credential to the returned MCP task, while MCP Tasks permits opaque high-entropy task IDs but does not define whether a paid task claim should be bearer-transferable or proof-of-possession-bound.
+- Assumption for the experiment: A 256-bit random `taskId` is a transferable bearer capability. Possession authorizes `tasks/get`; raw task IDs are persisted locally and excluded from committed traces.
+- Reproduction: Read MPP-over-MCP Payment Receipt and MCP Covered Operations, then MCP Tasks Security Considerations; search for payer identity, task claimant, proof of possession, and transferability across the two drafts (`NOT_FOUND`).
+- Sections consulted: `draft-payment-transport-mcp-00` / Payment Receipt; MCP Covered Operations. MCP Tasks / Security Considerations. Cross-spec paid-task claim model: `NOT_FOUND`.
+- Invalidation condition: A ratified MPP/MCP Tasks composition rule binds payer identity or proof material to task access, or normatively specifies bearer transferability.

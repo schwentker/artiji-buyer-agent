@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "test:contracts": "node --test test/*.test.js"
+    "test:contracts": "node --test test/*.test.js",
+    "test:p3": "node --test test/idempotency.test.js test/p1-contracts.test.js test/payment-persistence.test.js test/terms-visible-before-payment.test.js",
+    "trace:p3:stripe": "node --env-file=.env scripts/p3-live-stripe.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.5"
   }
 }
