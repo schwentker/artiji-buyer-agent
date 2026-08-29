@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-08-28T19:06:09-07:00",
+  "scenario": "cold-restart",
+  "gateway": "local transparent MCP observability proxy",
+  "events": 5,
+  "tasksGetEvents": 3,
+  "coldResumeRoutedThroughProxy": true,
+  "paymentSemanticsDecoded": false,
+  "note": "The proxy saw the child buyer's paid call and all authoritative tasks/get polls; it did not decode MPP semantics."
+}

@@ -1,0 +1,43 @@
+{
+  "phase_id": "P5",
+  "model_snapshot": "gpt-5.6-luna, cutoff 2026-02-16, policy verified 2026-08-28",
+  "effort": "low",
+  "elapsed_minutes": 23,
+  "status": "COMPLETE",
+  "actions_taken": [
+    "Added a transparent local MCP observability proxy that forwards JSON-RPC to the seller and records redacted summaries plus raw-body hashes.",
+    "Routed idempotent replay through the proxy and captured three events with identical paid/replay response hashes.",
+    "Routed the P4 cold-restart child processes through the proxy and captured five events including three tasks/get polls.",
+    "Routed a full challenge-paid-poll-complete lifecycle through the proxy and captured four events.",
+    "Verified every trace marks paymentSemanticsDecoded=false and contains no raw bearer task ID, payer credential, or secret key.",
+    "Recorded the absence of an MCP paid-call semantic trace model in the append-only gap log."
+  ],
+  "key_results": [
+    "Replay trace is legible enough to show challenge, paid success, and byte-identical replay at the MCP protocol level.",
+    "Cold-restart trace shows all buyer lifecycle traffic traversed the proxy, including authoritative tasks/get polling.",
+    "Full-lifecycle trace shows the expected tools/call, tools/call, tasks/get, tasks/get sequence.",
+    "The proxy observes payment-related JSON fields but has no notion of MPP, PaymentIntent semantics, receipt lifecycle, or paid-task correlation."
+  ],
+  "blockers": [],
+  "assumptions_made": [
+    {
+      "assumption": "A local transparent proxy is an adequate stand-in for an MCP Gateway for this evidence experiment.",
+      "tier": "INFERRED",
+      "invalidation_condition": "The event requires the hosted TrueForge MCP Gateway specifically, or its trace format is materially different from transparent HTTP forwarding."
+    },
+    {
+      "assumption": "Raw-body hashes and redacted protocol summaries are sufficient evidence without publishing bearer task IDs.",
+      "tier": "INFERRED",
+      "invalidation_condition": "A reviewer requires byte-exact raw bodies and accepts the associated capability disclosure risk."
+    }
+  ],
+  "gap_log_entries_added": 1,
+  "extension_fields_added": [],
+  "scope_creep_surfaced": [
+    "TrueForge's optional MCP Gateway was not added because the direct local harness supplied no documented paid-call decoder; building one would exceed P5's observability measurement.",
+    "No hosted Postgres/Redis deployment or public gateway endpoint was used."
+  ],
+  "commit_sha": "SELF",
+  "next_phase_ready": true,
+  "next_phase_readiness_reason": "All three gateway traces are captured and the paid-observability absence is recorded. P6 can audit the extension, synthesize the upstream diff, and assemble vectors only after the literal token go."
+}

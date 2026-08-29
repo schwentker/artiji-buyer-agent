@@ -131,3 +131,13 @@ This log is append-only. Tiers: `OFFICIAL`, `COMMUNITY`, `INFERRED`, `TEMPORAL`.
 - Reproduction: Complete a paid fixture with a matching artifact reference, then retry with a null URL and with a mismatched order reference. The valid artifact completes; both invalid forms are rejected.
 - Sections consulted: MCP Tasks / Task Results; `draft-payment-transport-mcp-00` / Payment Receipt. Standard paid-artifact order correlation: `NOT_FOUND`.
 - Invalidation condition: MCP Tasks or an MPP composition rule defines artifact identity and correlation for deferred paid results.
+
+## P5-001 — MCP observability has no paid-call semantic model
+
+- Timestamp: 2026-08-28T19:06:09-07:00
+- Tier: TEMPORAL + INFERRED
+- What the specifications did not answer: The local MCP proxy can record JSON-RPC methods, error codes, opaque `_meta` keys, and raw-body hashes, but neither MCP observability nor the available gateway surface defines a semantic event for challenge, credential, PaymentIntent, receipt, or paid-task lifecycle.
+- Assumption for the experiment: A transparent proxy is sufficient evidence capture; it must not invent a decoder or claim that a payment challenge/receipt is understood by MCP tooling.
+- Reproduction: Route idempotent replay, cold restart, and full lifecycle through the proxy. All three traces record `paymentSemanticsDecoded=false`; only protocol-level fields and hashes are available.
+- Sections consulted: TrueForge local-mode/API materials; MCP Tools and MCP Tasks lifecycle. Paid-call observability event model: `NOT_FOUND`.
+- Invalidation condition: TrueForge or an MCP gateway adds a documented paid-call trace schema that decodes and correlates payment challenge, receipt, and task events.

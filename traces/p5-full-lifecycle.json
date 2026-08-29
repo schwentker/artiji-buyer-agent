@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-08-28T19:06:09-07:00",
+  "scenario": "full-lifecycle",
+  "gateway": "local transparent MCP observability proxy",
+  "events": 4,
+  "methods": ["tools/call", "tools/call", "tasks/get", "tasks/get"],
+  "paymentSemanticsDecoded": false,
+  "note": "The trace is legible at the MCP method/error/metadata level but has no paid-call semantic model."
+}
