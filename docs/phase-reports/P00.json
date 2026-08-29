@@ -1,8 +1,8 @@
 {
   "phase_id": "P0",
-  "model_snapshot": "gpt-5.6-sol (current model ID; no dated GPT-5.6 snapshot is published in the official model catalog as of 2026-08-28)",
+  "model_snapshot": "gpt-5.6-sol, cutoff 2026-02-16, policy verified 2026-08-28",
   "effort": "xhigh",
-  "elapsed_minutes": 18,
+  "elapsed_minutes": 24,
   "status": "COMPLETE",
   "actions_taken": [
     "Initialized a fresh local standalone Git repository at /Users/andres/projects/artiji-buyer-agent; no remote was created.",
@@ -10,7 +10,9 @@
     "Performed the authorized one-time live reads of artiji-mcp.fly.dev/agent.md and JSON-RPC tools/list.",
     "Fetched current MPP core, MPP JSON-RPC/MCP transport, Stripe charge, MPP discovery, MCP Tasks, MCP Tools, and official OpenAI model documentation.",
     "Audited ~/.codex/config.toml model settings and the local automations directory without modifying either.",
-    "Designed the isolated seller stub and recorded every P0 specification-forced assumption in docs/gap-log.md."
+    "Designed the isolated seller stub and recorded every P0 specification-forced assumption in docs/gap-log.md.",
+    "Processed the operator's revised plan and verified its GPT-5.6 model metadata and TrueForge harness identification against the cited upstream pages.",
+    "Checked the newly declared preconditions without exposing credentials: .env is gitignored and contains Stripe test-mode prefixes; GitHub CLI authentication remains invalid."
   ],
   "key_results": [
     "The live Artiji MCP surface is intentionally read-only: exactly artiji_list_catalog and deprecated artiji_list_readings; both declare taskSupport=forbidden.",
@@ -21,15 +23,14 @@
     "The buyer-agent experiment remains justified on a narrower thesis: current MPP-over-MCP and MCP Tasks drafts do not define receipt-to-taskId correlation or receipt preservation across tasks/get and task notifications.",
     "Issue #292 currently shows only its author and no discussion participants. The claim that every participant is a seller is therefore unsupported; the author is a seller, but there is no participant sample to compare.",
     "No xyz.artiji/commerce extension draft was found in the current Artiji tree or its reachable Git history.",
-    "Official OpenAI documentation supports the Sol/Terra/Luna routing rationale, but currently publishes no dated GPT-5.6 snapshot strings. The plan's mandatory dated-snapshot pin cannot be satisfied without inventing an identifier.",
+    "Official OpenAI documentation lists gpt-5.6-sol, gpt-5.6-terra, and gpt-5.6-luna as resolvable model IDs, all with a 2026-02-16 knowledge cutoff and no dated snapshot IDs; the revised plan's model_snapshot convention resolves the earlier pinning blocker without inventing an identifier.",
+    "The event harness is TrueForge by TrueFoundry. Its official repository documents local mode as one process backed by SQLite and exposes MCP tools, sandboxing, human checkpoints, subagents, session persistence, and provider-agnostic model support.",
+    "The event page says TrueFoundry AI Gateway and MCP Gateway are not required for the hackathon; P5 can first evaluate TrueForge's own session/tool evidence before adding a separate observability proxy.",
     "Local Codex config already uses gpt-5.6-sol with xhigh effort, defines no profiles, and has no local scheduled automations. No gpt-5.4 or gpt-5.4-mini configuration reference was found. The claimed 2026-08-31 Codex retirement date was NOT_FOUND in official OpenAI documentation."
   ],
   "blockers": [
-    "P1 cannot truthfully pin a dated GPT-5.6 snapshot because official OpenAI model pages list only the undated Sol/Terra/Luna model IDs as their available snapshots.",
-    "The hackathon's concrete agent-harness repository/package/API was not identified in the request or in authoritative event material. P1 needs that artifact or must use a documented adapter with a local fallback.",
-    "P3 will require an isolated Stripe test-mode account/profile and test credentials; none were read or copied during P0.",
-    "GitHub CLI authentication for schwentker is currently invalid, which will block a later issue comment or repository publication until reauthenticated.",
-    "The current MPP-over-MCP capability advertisement is written for MCP 2025-11-25 while the experiment targets MCP 2026-07-28 Tasks negotiation."
+    "GitHub CLI authentication for schwentker is still invalid. The revised plan requires `gh auth login` and a passing `gh auth status` before P1 starts.",
+    "The repository's gitignored .env has Stripe test-mode key prefixes, but an automated check cannot establish that the credentials were created specifically for this repository rather than reused."
   ],
   "assumptions_made": [
     {
@@ -58,12 +59,17 @@
   "scope_creep_surfaced": [
     "Creating a personal GitHub repository/remote was not performed; it is an external mutation not necessary to complete local P0 evidence.",
     "The checked-in Artiji public discovery drift was not fixed because Artiji is read-only reference material for this project.",
-    "No live Stripe or Supabase state was inspected and no credential search was performed.",
+    "No live Stripe or Supabase state was inspected and no credential values were read.",
     "The plan's self-referential commit_sha field cannot contain the hash of the same commit that contains it. SELF means the commit containing this report; the resolved hash is reported after commit."
   ],
-  "commit_sha": "SELF",
+  "commit_sha": "603c5ef5fcc45d74851a7ef35566c9d0826ba653",
   "next_phase_ready": false,
-  "next_phase_readiness_reason": "P0 is complete, but P1 should start only after the operator accepts the revised thesis and either supplies the event harness artifact or approves a harness adapter with a local fallback.",
+  "next_phase_readiness_reason": "P0 is complete and the model/harness blockers are resolved. P1 remains gated on a passing `gh auth status`, operator confirmation that the gitignored Stripe test keys are isolated to this repository, and the literal token `go`.",
+  "amendment": {
+    "date": "2026-08-28",
+    "reason": "The operator supplied a substantively revised plan resolving the model pinning and event-harness unknowns.",
+    "commit_sha": "SELF"
+  },
   "artiji_reference_summary": {
     "source": {
       "repository": "https://github.com/schwentker/artiji",
@@ -146,6 +152,16 @@
       "tier": "OFFICIAL",
       "retrieved": "2026-08-28",
       "source": "https://developers.openai.com/api/docs/models"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://github.com/truefoundry/trueforge"
+    },
+    {
+      "tier": "OFFICIAL",
+      "retrieved": "2026-08-28",
+      "source": "https://www.wemakedevs.org/hackathons/trueforge"
     },
     {
       "tier": "TEMPORAL",
